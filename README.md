@@ -114,7 +114,9 @@ ordinary output, so there's nothing to escape. Indentation is stripped.
 | `# …` | A source comment; never renders. |
 
 **Auto-tracked (no verb):** `cd app` (incl. `&&` chains) updates the directory segment;
-`git init`/`git clone` reveals the branch segment; `git checkout -b dev` switches it.
+`git init`/`git clone` reveals the branch segment; `git checkout -b dev` switches it;
+`source .venv/bin/activate` (or `conda activate`, `workon`) reveals the `python` venv
+segment, and `deactivate` hides it.
 
 ### Durations & styles
 
@@ -132,9 +134,9 @@ All optional, set on the `<x-zsh>` tag.
 
 | Attribute | Default | What it does |
 |---|---|---|
-| `os` | `ubuntu` | Prompt icon + color: `ubuntu, debian, macos, arch, fedora, alpine`. |
+| `os` | `ubuntu` | Prompt icon + brand color. One of: `ubuntu, debian, macos, arch, fedora, alpine, mint, manjaro, kali, centos, rhel, rocky, alma, opensuse, raspbian, gentoo, void, nixos, popos, elementary, windows, wsl, freebsd, termux`. |
 | `mode` | `dark` | `dark` or `light`. |
-| `plugins` | — | Comma list of prompt segments: `node, python, docker, rust, go`. |
+| `plugins` | — | Comma list of prompt segments. Languages/runtimes: `node, python, docker, rust, go, ruby, php, java, kotlin, swift, deno, bun, dotnet, elixir, dart, zig, lua, perl, haskell`. Infra/cloud: `terraform, k8s, aws, gcp`. (`python` only shows once a venv is activated.) |
 | `user` `host` `dir` `branch` | `you localhost ~ main` | Initial prompt context. |
 | `title` | `user@host: dir` | Window title-bar text. |
 | `height` | — | Fixed screen height (px number or CSS length). Scrolls internally; auto-scrolls. |

@@ -248,6 +248,21 @@
       progress[1.8s block]: Extracting
     </x-zsh>
   </div>
+
+  <p class="lbl">Rich prompt — Rocky Linux · Go · Terraform · Kubernetes · AWS</p>
+  <div class="demo">
+    <x-zsh os="rocky" plugins="go,terraform,k8s,aws" user="rocky" host="ci" dir="~/infra" height="260">
+      note: Ship the service to production.
+      cmd: terraform apply -auto-approve
+      spinner[2s]: Applying changes => Apply complete! 7 added, 2 changed.
+      cmd: go build -o server ./cmd/server
+      cmd: docker build -t registry/server:1.4.0 .
+      progress[2s arrow]: Building image
+      cmd: kubectl rollout restart deploy/server
+      success: deployment.apps/server restarted
+      info: rollout status: 3/3 pods ready
+    </x-zsh>
+  </div>
 </div></section>
 
 <section id="guide"><div class="wrap">
@@ -299,7 +314,9 @@
 
   <div class="note"><b>Auto-tracked, no verb needed:</b> <code>cd app</code> (including <code>&amp;&amp;</code>
     chains) updates the directory segment; <code>git init</code>/<code>git clone</code> reveals the
-    branch segment; <code>git checkout -b dev</code> switches the branch.</div>
+    branch segment; <code>git checkout -b dev</code> switches the branch;
+    <code>source .venv/bin/activate</code> (or <code>conda activate</code>) reveals the
+    <code>python</code> venv segment.</div>
 
   <h3>Durations &amp; styles</h3>
   <p>The bracket on timed verbs holds a <b>duration</b> and/or a <b>style</b>, in any order:
@@ -322,9 +339,9 @@
   <p class="lead">All attributes are optional. Set them on the <code>&lt;x-zsh&gt;</code> tag.</p>
   <table class="tbl">
     <tr><th>Attribute</th><th>Default</th><th>What it does</th></tr>
-    <tr><td><code>os</code></td><td><code>ubuntu</code></td><td>Prompt icon + color. One of <code>ubuntu, debian, macos, arch, fedora, alpine</code>.</td></tr>
+    <tr><td><code>os</code></td><td><code>ubuntu</code></td><td>Prompt icon + brand color. One of <code>ubuntu, debian, macos, arch, fedora, alpine, mint, manjaro, kali, centos, rhel, rocky, alma, opensuse, raspbian, gentoo, void, nixos, popos, elementary, windows, wsl, freebsd, termux</code>.</td></tr>
     <tr><td><code>mode</code></td><td><code>dark</code></td><td><code>dark</code> or <code>light</code>.</td></tr>
-    <tr><td><code>plugins</code></td><td>—</td><td>Comma list of prompt segments: <code>node, python, docker, rust, go</code>.</td></tr>
+    <tr><td><code>plugins</code></td><td>—</td><td>Comma list of prompt segments. Languages/runtimes: <code>node, python, docker, rust, go, ruby, php, java, kotlin, swift, deno, bun, dotnet, elixir, dart, zig, lua, perl, haskell</code>. Infra/cloud: <code>terraform, k8s, aws, gcp</code>. <code>python</code> shows only after a venv is activated.</td></tr>
     <tr><td><code>user</code> <code>host</code> <code>dir</code> <code>branch</code></td><td><code>you localhost ~ main</code></td><td>Initial prompt context.</td></tr>
     <tr><td><code>title</code></td><td><code>user@host: dir</code></td><td>Window title-bar text.</td></tr>
     <tr><td><code>height</code></td><td>—</td><td>Fixed screen height (bare number = px, or any CSS length). Scrolls internally, auto-scrolls to the latest line.</td></tr>

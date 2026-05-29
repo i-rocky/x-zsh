@@ -1,6 +1,6 @@
 {
   "name": "x-zsh",
-  "version": "0.1.1",
+  "version": "0.2.0",
   "description": "Drop-in animated terminal walkthroughs as a custom element. Write a session in plain text; it renders an animated p10k-style zsh, isolated in Shadow DOM. Zero config, no build, not an emulator.",
   "main": "x-zsh.js",
   "module": "x-zsh.js",

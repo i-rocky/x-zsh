@@ -36,20 +36,56 @@
   var VERB_RE = new RegExp('^(' + RESERVED.join('|') + ')(?:\\[([^\\]]+)\\])?:\\s?([\\s\\S]*)$');
 
   var OS = {
-    ubuntu: { name: 'Ubuntu', icon: '🐧', bg: '#E95420', fg: '#fff' },
-    debian: { name: 'Debian', icon: '🌀', bg: '#A80030', fg: '#fff' },
-    macos:  { name: 'macOS',  icon: '🍎', bg: '#5b6066', fg: '#fff' },
-    arch:   { name: 'Arch',   icon: '🐧', bg: '#1793D1', fg: '#04212e' },
-    fedora: { name: 'Fedora', icon: '🎩', bg: '#3C6EB4', fg: '#fff' },
-    alpine: { name: 'Alpine', icon: '🏔', bg: '#0D597F', fg: '#fff' }
+    ubuntu:     { name: 'Ubuntu',       icon: '🐧', bg: '#E95420', fg: '#fff' },
+    debian:     { name: 'Debian',       icon: '🌀', bg: '#A80030', fg: '#fff' },
+    macos:      { name: 'macOS',        icon: '🍎', bg: '#5b6066', fg: '#fff' },
+    arch:       { name: 'Arch',         icon: '🐧', bg: '#1793D1', fg: '#04212e' },
+    fedora:     { name: 'Fedora',       icon: '🎩', bg: '#3C6EB4', fg: '#fff' },
+    alpine:     { name: 'Alpine',       icon: '🏔', bg: '#0D597F', fg: '#fff' },
+    mint:       { name: 'Mint',         icon: '🌿', bg: '#86BE43', fg: '#0d1f06' },
+    manjaro:    { name: 'Manjaro',      icon: '🥭', bg: '#35BF5C', fg: '#05230f' },
+    kali:       { name: 'Kali',         icon: '🐉', bg: '#367BF0', fg: '#fff' },
+    centos:     { name: 'CentOS',       icon: '💠', bg: '#932279', fg: '#fff' },
+    rhel:       { name: 'RHEL',         icon: '🎩', bg: '#EE0000', fg: '#fff' },
+    rocky:      { name: 'Rocky',        icon: '⛰️', bg: '#10B981', fg: '#04241a' },
+    alma:       { name: 'AlmaLinux',    icon: '🌿', bg: '#0B6FA4', fg: '#fff' },
+    opensuse:   { name: 'openSUSE',     icon: '🦎', bg: '#73BA25', fg: '#0e2207' },
+    raspbian:   { name: 'Raspberry Pi', icon: '🍓', bg: '#C51A4A', fg: '#fff' },
+    gentoo:     { name: 'Gentoo',       icon: '🪶', bg: '#54487A', fg: '#fff' },
+    void:       { name: 'Void',         icon: '🕳️', bg: '#478061', fg: '#fff' },
+    nixos:      { name: 'NixOS',        icon: '❄️', bg: '#5277C3', fg: '#fff' },
+    popos:      { name: 'Pop!_OS',      icon: '🚀', bg: '#48B9C7', fg: '#04282c' },
+    elementary: { name: 'elementary',   icon: '🪐', bg: '#64BAFF', fg: '#04212e' },
+    windows:    { name: 'Windows',      icon: '🪟', bg: '#0078D4', fg: '#fff' },
+    wsl:        { name: 'WSL',          icon: '🐧', bg: '#4C8BF5', fg: '#fff' },
+    freebsd:    { name: 'FreeBSD',      icon: '😈', bg: '#AB2B28', fg: '#fff' },
+    termux:     { name: 'Termux',       icon: '🤖', bg: '#3EB049', fg: '#05230f' }
   };
 
   var PLUGINS = {
-    node:   { icon: '⬡',  txt: 'v18.17.0', bg: '#3c873a', fg: '#eafff0' },
-    python: { icon: '🐍', txt: 'venv',      bg: '#FFD343', fg: '#34302a' },
-    docker: { icon: '🐳', txt: '24.0',      bg: '#2496ED', fg: '#fff' },
-    rust:   { icon: '🦀', txt: '1.74',      bg: '#DEA584', fg: '#2b1a12' },
-    go:     { icon: '🐹', txt: '1.21',      bg: '#00ADD8', fg: '#04222a' }
+    node:      { icon: '⬡',  txt: 'v18.17.0', bg: '#3c873a', fg: '#eafff0' },
+    python:    { icon: '🐍', txt: 'venv',     bg: '#FFD343', fg: '#34302a' },
+    docker:    { icon: '🐳', txt: '24.0',     bg: '#2496ED', fg: '#fff' },
+    rust:      { icon: '🦀', txt: '1.74',     bg: '#DEA584', fg: '#2b1a12' },
+    go:        { icon: '🐹', txt: '1.21',     bg: '#00ADD8', fg: '#04222a' },
+    ruby:      { icon: '💎', txt: 'v3.3.0',   bg: '#9b111e', fg: '#fff' },
+    php:       { icon: '🐘', txt: '8.3',      bg: '#777BB4', fg: '#fff' },
+    java:      { icon: '☕', txt: '21',       bg: '#5382A1', fg: '#fff' },
+    kotlin:    { icon: '🟣', txt: '2.0',      bg: '#7F52FF', fg: '#fff' },
+    swift:     { icon: '🐦', txt: '5.10',     bg: '#F05138', fg: '#fff' },
+    deno:      { icon: '🦕', txt: '1.45',     bg: '#111111', fg: '#70ffaf' },
+    bun:       { icon: '🥟', txt: '1.1',      bg: '#FBF0DF', fg: '#2b1a12' },
+    dotnet:    { icon: '🔷', txt: '8.0',      bg: '#512BD4', fg: '#fff' },
+    elixir:    { icon: '💧', txt: '1.16',     bg: '#4B275F', fg: '#fff' },
+    dart:      { icon: '🎯', txt: '3.4',      bg: '#0175C2', fg: '#fff' },
+    zig:       { icon: '⚡', txt: '0.13',     bg: '#F7A41D', fg: '#2b1a12' },
+    lua:       { icon: '🌙', txt: '5.4',      bg: '#000080', fg: '#fff' },
+    perl:      { icon: '🐪', txt: '5.38',     bg: '#39457E', fg: '#fff' },
+    haskell:   { icon: 'λ',  txt: '9.8',      bg: '#5E5086', fg: '#fff' },
+    terraform: { icon: '🏗', txt: '1.8',      bg: '#7B42BC', fg: '#fff' },
+    k8s:       { icon: '☸', txt: 'prod',      bg: '#326CE5', fg: '#fff' },
+    aws:       { icon: '☁', txt: 'prod',      bg: '#232F3E', fg: '#FF9900' },
+    gcp:       { icon: '☁', txt: 'staging',   bg: '#4285F4', fg: '#fff' }
   };
 
   var COPY_SVG = '<svg viewBox="0 0 24 24" width="12" height="12" fill="none" ' +
