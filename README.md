@@ -170,8 +170,7 @@ x-zsh::part(window) { border-radius: 6px; }
 
 ## Custom plugins & pinned versions
 
-Pin any segment's version inline, and register your own segments at runtime. The `icon`
-may be an emoji, plain text, or even an inline SVG:
+Pin any segment's version inline, and register your own segments at runtime:
 
 ```html
 <x-zsh plugins="node@22.3.0, go@1.23, k8s@staging"> … </x-zsh>
@@ -180,11 +179,27 @@ may be an emoji, plain text, or even an inline SVG:
 ```js
 import 'x-zsh';
 // register before the element scrolls into view (e.g. in <head>)
-XZsh.plugin('acme', { icon: '🚀', txt: 'v2', bg: '#5b21b6', fg: '#fff' });
-XZsh.os('myos',    { name: 'MyOS', icon: '🛸', bg: '#222', fg: '#fff' });
+XZsh.plugin('acme', { slug: 'docker', txt: 'v2', bg: '#5b21b6', fg: '#fff' }); // a Simple Icons slug
+XZsh.plugin('beta', { url: 'https://…/logo.svg', bg: '#222', fg: '#fff' });    // any monochrome SVG URL
+XZsh.plugin('gamma',{ icon: '🚀', bg: '#222', fg: '#fff' });                   // emoji/text fallback
+XZsh.os('myos',     { name: 'MyOS', slug: 'archlinux', bg: '#222', fg: '#fff' });
 ```
 
 Then `<x-zsh os="myos" plugins="acme@v3">` renders your custom OS and segment.
+
+### Icons load on demand
+
+Built-in OS/plugin logos are **real brand icons, vendored into this package** under
+[`icons/`](icons/) — so there's no runtime dependency on a third-party repo that could
+change or disappear. They're loaded **lazily** and tinted to the segment color via CSS
+`mask`; a logo is fetched only when its plugin/OS actually appears, so the script itself
+stays ~10 KB. The base resolves next to wherever you load `x-zsh` (npm, a CDN, or your own
+host), so the same origin serves the icons; override with `XZsh.iconBase = '/my/icons/'`.
+Offline, segments still show their text/version, just without the glyph.
+
+Logos come from [Simple Icons](https://github.com/simple-icons/simple-icons) (CC0) and a
+couple from [devicon](https://github.com/devicons/devicon) (MIT) — see
+[`icons/CREDITS.md`](icons/CREDITS.md). Regenerate with `node scripts/fetch-icons.mjs`.
 
 ---
 

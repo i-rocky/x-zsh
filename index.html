@@ -407,14 +407,24 @@
 x-zsh{ --bg:#1e1e2e; --fg:#cdd6f4; --accent2:#89b4fa; }</pre>
   <p>A named-theme registry hook exists for the future: <code>XZsh.theme('name', {…})</code>.</p>
 
+  <h3>Icons load on demand</h3>
+  <p>Built-in logos are real brand icons <b>vendored into the package</b> (no runtime
+    dependency on a third-party repo) and loaded lazily, tinted to the segment color via CSS
+    <code>mask</code> — so the script stays ~10&nbsp;KB and a logo is fetched only when used.
+    The base resolves next to wherever you load <code>x-zsh</code>; override with
+    <code>XZsh.iconBase</code>. Logos: <a href="https://github.com/simple-icons/simple-icons">Simple
+    Icons</a> (CC0) + a couple from <a href="https://github.com/devicons/devicon">devicon</a> (MIT).</p>
+
   <h3>Versions &amp; custom plugins</h3>
-  <p>Pin any plugin's version inline with <code>name@version</code>, and register your
-    own segments (the <code>icon</code> can be emoji, text, or even an inline SVG):</p>
+  <p>Pin any plugin's version inline with <code>name@version</code>, and register your own
+    segments — point at a Simple Icons <code>slug</code>, any SVG <code>url</code>, or fall
+    back to an emoji/text <code>icon</code>:</p>
   <pre>&lt;x-zsh plugins="node@22.3.0, go@1.23, k8s@staging"&gt; … &lt;/x-zsh&gt;
 
 <span class="c">// register before the element scrolls into view (e.g. in &lt;head&gt;)</span>
-XZsh.plugin(<span class="s">'acme'</span>, { icon: <span class="s">'🚀'</span>, txt: <span class="s">'v2'</span>, bg: <span class="s">'#5b21b6'</span>, fg: <span class="s">'#fff'</span> });
-XZsh.os(<span class="s">'myos'</span>, { name: <span class="s">'MyOS'</span>, icon: <span class="s">'🛸'</span>, bg: <span class="s">'#222'</span>, fg: <span class="s">'#fff'</span> });</pre>
+XZsh.plugin(<span class="s">'acme'</span>, { slug: <span class="s">'docker'</span>, txt: <span class="s">'v2'</span>, bg: <span class="s">'#5b21b6'</span>, fg: <span class="s">'#fff'</span> });
+XZsh.plugin(<span class="s">'beta'</span>, { url: <span class="s">'https://…/logo.svg'</span>, bg: <span class="s">'#222'</span>, fg: <span class="s">'#fff'</span> });
+XZsh.os(<span class="s">'myos'</span>, { name: <span class="s">'MyOS'</span>, slug: <span class="s">'archlinux'</span>, bg: <span class="s">'#222'</span>, fg: <span class="s">'#fff'</span> });</pre>
 
   <h3>Custom tag</h3>
   <pre><span class="k">import</span> <span class="s">'x-zsh'</span>;

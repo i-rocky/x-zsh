@@ -26,10 +26,14 @@
  *   progress style), height, rows, loop, loop-delay, controls.
  *
  * Plugins take an optional version after @:  plugins="node@22,go@1.23,k8s@staging".
- * Add or override OS/plugins at runtime:
- *   XZsh.plugin('acme', { icon: '🚀', txt: 'v2', bg: '#5b21b6', fg: '#fff' });
- *   XZsh.os('myos', { name: 'MyOS', icon: '🛸', bg: '#222', fg: '#fff' });
- * (icon is inserted as HTML — emoji, text, or even an inline SVG all work.)
+ * Built-in logos are vendored under icons/ (see icons/CREDITS.md) and loaded lazily,
+ * tinted to the segment color via CSS mask. The base resolves next to this script, so the
+ * same copy (npm/CDN/your host) serves the icons; override with XZsh.iconBase. Nothing is
+ * bundled. Add or override segments at runtime:
+ *   XZsh.plugin('acme', { slug: 'docker', txt: 'v2', bg: '#5b21b6', fg: '#fff' }); // Simple Icons slug
+ *   XZsh.plugin('acme', { url: 'https://…/logo.svg', bg: '#222', fg: '#fff' });    // any SVG URL
+ *   XZsh.plugin('acme', { icon: '🚀', bg: '#222', fg: '#fff' });                   // emoji/text fallback
+ *   XZsh.os('myos', { name: 'MyOS', slug: 'archlinux', bg: '#222', fg: '#fff' });
  *
  * Only the reserved words above (lowercase, followed by ':') are verbs.
  * Any other `word:` is plain output. cd / git are auto-tracked in the prompt.
@@ -90,7 +94,7 @@
     haskell:   { icon: 'λ',  txt: '9.8',      bg: '#5E5086', fg: '#fff' },
     terraform: { icon: '🏗', txt: '1.8',      bg: '#7B42BC', fg: '#fff' },
     k8s:       { icon: '☸', txt: 'prod',      bg: '#326CE5', fg: '#fff' },
-    aws:       { icon: '☁', txt: 'prod',      bg: '#232F3E', fg: '#FF9900' },
+    aws:       { icon: 'aws', txt: 'prod',     bg: '#232F3E', fg: '#FF9900' },
     gcp:       { icon: '☁', txt: 'staging',   bg: '#4285F4', fg: '#fff' },
     // languages
     cpp:       { icon: 'C++', txt: '20',   bg: '#00599C', fg: '#fff' },
@@ -161,6 +165,33 @@
     zsh:       { icon: '🐚', txt: '',      bg: '#4E4E4E', fg: '#fff' },
     bash:      { icon: '🐚', txt: '',      bg: '#4EAA25', fg: '#fff' }
   };
+
+  // Brand logos are vendored under icons/ and loaded lazily, tinted to the segment color
+  // via CSS mask. The base resolves next to this script, so whichever copy (npm, a CDN, or
+  // your own host) serves x-zsh also serves its icons. Override with XZsh.iconBase. Nothing
+  // is inlined; a logo is fetched only when its plugin/OS actually appears.
+  var SI = 'https://cdn.jsdelivr.net/npm/simple-icons@16/icons/';   // only for custom `slug`
+  var ICON_BASE;
+  try {
+    var _src = document.currentScript && document.currentScript.src;
+    ICON_BASE = _src ? new URL('icons/', _src).href : 'https://cdn.jsdelivr.net/npm/x-zsh@0/icons/';
+  } catch (e) { ICON_BASE = 'https://cdn.jsdelivr.net/npm/x-zsh@0/icons/'; }
+
+  var NO_ICON = { aws: 1 };          // keys with no vendored logo -> text fallback
+  var BUILTIN_ICON = { git: 1 };     // keys vendored under icons/<key>.svg
+  Object.keys(OS).forEach(function (k) { if (!NO_ICON[k]) BUILTIN_ICON[k] = 1; });
+  Object.keys(PLUGINS).forEach(function (k) { if (!NO_ICON[k]) BUILTIN_ICON[k] = 1; });
+
+  // entry may carry its own .url or Simple Icons .slug (custom plugins); else our vendored copy
+  function iconUrl(entry, key) {
+    if (entry && entry.url) return entry.url;
+    if (entry && entry.slug) return SI + entry.slug + '.svg';
+    if (BUILTIN_ICON[key]) return Term.iconBase + key + '.svg';
+    return null;
+  }
+  function maskIcon(url) {
+    return '<i class="ic" style="-webkit-mask-image:url(' + url + ');mask-image:url(' + url + ')"></i>';
+  }
 
   var COPY_SVG = '<svg viewBox="0 0 24 24" width="12" height="12" fill="none" ' +
     'stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' +
@@ -511,18 +542,23 @@
 
     segments() {
       var c = this.ctx, os = OS[c.os] || OS.ubuntu, segs = [];
-      segs.push({ html: os.icon + ' ' + os.name, bg: os.bg, fg: os.fg });
-      segs.push({ html: '📁 ' + esc(c.dir), bg: '#2a6df4', fg: '#fff' });
-      if (c.git) segs.push({ html: '⎇ ' + esc(c.branch), bg: '#3fb950', fg: '#04210d' });
+
+      // a masked logo carries its own gap (.ic margin); a text fallback adds a space
+      function lead(url, fallback) {
+        return url ? maskIcon(url) : (fallback ? fallback + ' ' : '');
+      }
+
+      segs.push({ html: lead(iconUrl(os, c.os), os.icon) + esc(os.name), bg: os.bg, fg: os.fg });
+      segs.push({ html: esc(c.dir), bg: '#2a6df4', fg: '#fff' });
+      if (c.git) segs.push({ html: maskIcon(Term.iconBase + 'git.svg') + esc(c.branch), bg: '#3fb950', fg: '#04210d' });
+
       c.plugins.forEach(function (p) {
         var d = PLUGINS[p.name];
         if (!d) return;
-        if (p.name === 'python' && p.txt == null) {  // venv-gated unless an explicit version is set
-          if (c.venv) segs.push({ html: d.icon + ' ' + esc(c.venv), bg: d.bg, fg: d.fg });
-          return;
-        }
-        var txt = p.txt != null ? p.txt : d.txt;      // name@version overrides the default
-        segs.push({ html: d.icon + (txt ? ' ' + esc(txt) : ''), bg: d.bg, fg: d.fg });
+        if (p.name === 'python' && p.txt == null && !c.venv) return;  // venv-gated
+        var txt = (p.name === 'python' && p.txt == null) ? c.venv
+          : (p.txt != null ? p.txt : d.txt);         // name@version overrides the default
+        segs.push({ html: lead(iconUrl(d, p.name), d.icon) + (txt ? esc(txt) : ''), bg: d.bg, fg: d.fg });
       });
       return segs;
     }
@@ -845,6 +881,9 @@
     '.pbar{display:flex;align-items:stretch;line-height:1.7;width:max-content;max-width:100%;',
     'font-size:12.5px;border-radius:3px;overflow:hidden;}',
     '.seg{display:flex;align-items:center;padding:0 .7em;font-weight:600;white-space:nowrap;}',
+    '.ic{flex:0 0 auto;width:1.05em;height:1.05em;margin-right:.42em;',
+    'background-color:currentColor;-webkit-mask-repeat:no-repeat;mask-repeat:no-repeat;',
+    '-webkit-mask-position:center;mask-position:center;-webkit-mask-size:contain;mask-size:contain;}',
     '.sep{width:.62em;align-self:stretch;background:var(--next);position:relative;flex:0 0 auto;}',
     '.sep::before{content:"";position:absolute;inset:0;background:var(--prev);',
     'clip-path:polygon(0 0,0 100%,100% 50%);}',
@@ -906,9 +945,13 @@
   Term.themes = {};
   Term.theme = function (name, vars) { Term.themes[name] = vars; };
 
+  // Where vendored logos are served from (resolved next to this script). Override before
+  // any element renders, e.g. XZsh.iconBase = '/my/icons/'.
+  Term.iconBase = ICON_BASE;
+
   // Register or override a prompt plugin / OS. def fields:
-  //   plugin: { icon, txt, bg, fg }   os: { name, icon, bg, fg }
-  // `icon` is inserted as HTML, so it may be an emoji, text, or inline SVG.
+  //   plugin: { slug | url | icon, txt, bg, fg }   os: { name, slug | url | icon, bg, fg }
+  // slug = a Simple Icons slug (loaded from its CDN); url = any SVG; icon = emoji/text/SVG.
   // Call before the element scrolls into view (e.g. in <head>).
   Term.plugin = function (name, def) { PLUGINS[name] = def; return Term; };
   Term.os = function (name, def) { OS[name] = def; return Term; };
