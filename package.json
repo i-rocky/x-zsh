@@ -1,0 +1,48 @@
+{
+  "name": "x-shell",
+  "version": "0.1.0",
+  "description": "Drop-in animated terminal walkthroughs as a custom element. Write a session in plain text; it renders an animated p10k-style zsh, isolated in Shadow DOM. Zero config, no build, not an emulator.",
+  "main": "x-shell.js",
+  "module": "x-shell.js",
+  "unpkg": "x-shell.js",
+  "jsdelivr": "x-shell.js",
+  "exports": {
+    ".": "./x-shell.js"
+  },
+  "sideEffects": true,
+  "files": [
+    "x-shell.js",
+    "README.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "start": "python3 -m http.server 8000"
+  },
+  "keywords": [
+    "terminal",
+    "shell",
+    "zsh",
+    "web-component",
+    "custom-element",
+    "animation",
+    "walkthrough",
+    "cli",
+    "console",
+    "tutorial",
+    "progress-bar",
+    "spinner",
+    "shadow-dom",
+    "powerlevel10k",
+    "asciinema-alternative"
+  ],
+  "author": "Rocky <smrockypk@gmail.com>",
+  "license": "MIT",
+  "homepage": "https://i-rocky.github.io/x-shell/",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/i-rocky/x-shell.git"
+  },
+  "bugs": {
+    "url": "https://github.com/i-rocky/x-shell/issues"
+  }
+}

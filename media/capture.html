@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>x-shell capture</title>
+<style>
+  html,body{margin:0;background:#0c0d14}
+  #cap{width:760px;padding:30px;background:#0c0d14}
+</style>
+</head>
+<body>
+  <div id="cap">
+    <x-shell os="ubuntu" plugins="node" user="rocky" host="dev" height="300"
+             speed="26" gap="450" loop loop-delay="900">
+      note: Get it running in under a minute.
+      cmd: git clone https://github.com/acme/widget
+      spinner[1.4s]: Receiving objects => Received 2,418 objects, done.
+      cmd: cd widget && npm i
+      progress[1.6s]: Installing
+      success: added 219 packages
+      cmd: npm run dev
+      info: ➜  Local:   http://localhost:5173/
+    </x-shell>
+  </div>
+  <script src="../x-shell.js"></script>
+</body>
+</html>

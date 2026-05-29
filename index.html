@@ -1,0 +1,384 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>x-shell — animated terminal walkthroughs as an HTML element</title>
+<meta name="description" content="Drop in one script and write a terminal session in plain text. x-shell renders an animated, p10k-style zsh walkthrough, isolated in Shadow DOM. Zero config, no build, not an emulator.">
+<style>
+  :root{
+    --bg:#0c0d14; --panel:#12131c; --line:#222538; --fg:#d6dcef; --muted:#8b93ab;
+    --accent:#9ece6a; --accent2:#7aa2f7; --pink:#f7768e; --yellow:#e0af68;
+    --radius:12px;
+    --mono:"SFMono-Regular",ui-monospace,"Cascadia Code","JetBrains Mono",Menlo,Consolas,monospace;
+    --sans:-apple-system,BlinkMacSystemFont,"Segoe UI",system-ui,sans-serif;
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth;scroll-padding-top:72px}
+  body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.65 var(--sans);
+    -webkit-font-smoothing:antialiased;}
+  a{color:var(--accent2);text-decoration:none}
+  a:hover{text-decoration:underline}
+  code{font-family:var(--mono);font-size:.9em;background:#1b1d2b;padding:.12em .42em;
+    border-radius:5px;color:#cbd3f0}
+  h1,h2,h3{line-height:1.2;letter-spacing:-.02em}
+  .wrap{max-width:920px;margin:0 auto;padding:0 22px}
+
+  /* nav */
+  nav{position:sticky;top:0;z-index:50;backdrop-filter:blur(10px);
+    background:rgba(12,13,20,.72);border-bottom:1px solid var(--line)}
+  nav .wrap{display:flex;align-items:center;gap:22px;height:60px}
+  nav .brand{font-family:var(--mono);font-weight:700;color:var(--accent);font-size:16px}
+  nav .brand b{color:var(--muted);font-weight:400}
+  nav .links{display:flex;gap:20px;margin-left:auto;font-size:14.5px}
+  nav .links a{color:var(--muted)}
+  nav .links a:hover{color:var(--fg);text-decoration:none}
+  @media(max-width:680px){nav .links a:not(.gh){display:none}}
+
+  /* hero */
+  header.hero{padding:74px 0 36px;text-align:center}
+  .badge{display:inline-block;font-family:var(--mono);font-size:12.5px;color:var(--accent2);
+    border:1px solid var(--line);border-radius:999px;padding:5px 14px;margin-bottom:22px;background:var(--panel)}
+  header.hero h1{font-size:clamp(34px,6vw,56px);margin:.1em 0 .25em}
+  header.hero h1 .tag{font-family:var(--mono);color:var(--accent)}
+  header.hero p.sub{font-size:clamp(17px,2.4vw,21px);color:var(--muted);max-width:680px;margin:0 auto 30px}
+  .cta{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-bottom:18px}
+  .btn{display:inline-flex;align-items:center;gap:8px;padding:11px 20px;border-radius:9px;
+    font-weight:600;font-size:15px;border:1px solid var(--line)}
+  .btn.primary{background:var(--accent);color:#08210a;border-color:var(--accent)}
+  .btn.primary:hover{filter:brightness(1.06);text-decoration:none}
+  .btn.ghost{background:var(--panel);color:var(--fg)}
+  .btn.ghost:hover{border-color:var(--accent2);text-decoration:none}
+
+  section{padding:46px 0;border-top:1px solid var(--line)}
+  section h2{font-size:28px;margin:0 0 6px}
+  section .lead{color:var(--muted);margin:0 0 26px;font-size:17px}
+  h3{font-size:18px;margin:30px 0 10px}
+
+  /* features */
+  .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:16px}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:18px 18px 16px}
+  .card h3{margin:0 0 6px;font-size:16px}
+  .card p{margin:0;color:var(--muted);font-size:14.5px}
+  .card .ic{font-size:20px;margin-bottom:8px;display:block}
+
+  /* code blocks */
+  pre{background:#0a0b12;border:1px solid var(--line);border-radius:10px;padding:15px 17px;
+    overflow:auto;font-family:var(--mono);font-size:13px;line-height:1.6;color:#aab2cf;margin:0}
+  pre .c{color:#6b7390}
+  pre .k{color:var(--accent)}
+  pre .s{color:var(--yellow)}
+  .demo{margin:18px 0}
+  .demo .src{margin-top:10px}
+  .two{display:grid;grid-template-columns:1fr;gap:14px}
+  details.src summary{cursor:pointer;color:var(--muted);font-size:13.5px;font-family:var(--mono);
+    padding:6px 0;user-select:none}
+  details.src summary:hover{color:var(--fg)}
+
+  /* tables */
+  .tbl{width:100%;border-collapse:collapse;font-size:14.5px;margin:10px 0;display:block;overflow-x:auto}
+  .tbl th,.tbl td{text-align:left;padding:9px 12px;border-bottom:1px solid var(--line);vertical-align:top}
+  .tbl th{color:var(--muted);font-weight:600;font-size:12.5px;text-transform:uppercase;letter-spacing:.05em}
+  .tbl td code{white-space:nowrap}
+  .tbl td:first-child{white-space:nowrap}
+
+  .note{background:rgba(122,162,247,.08);border-left:3px solid var(--accent2);
+    border-radius:0 8px 8px 0;padding:12px 16px;margin:18px 0;color:#b9c2e0;font-size:14.5px}
+  .note b{color:#fff}
+
+  footer{border-top:1px solid var(--line);padding:34px 0 60px;color:var(--muted);font-size:14px}
+  footer .wrap{display:flex;justify-content:space-between;flex-wrap:wrap;gap:14px}
+
+  .lbl{display:inline-block;font-family:var(--mono);font-size:11.5px;color:var(--muted);
+    text-transform:uppercase;letter-spacing:.08em;margin:0 0 8px}
+</style>
+</head>
+<body>
+
+<nav><div class="wrap">
+  <span class="brand">&lt;x-shell&gt;</span>
+  <span class="links">
+    <a href="#install">Install</a>
+    <a href="#examples">Examples</a>
+    <a href="#guide">Guide</a>
+    <a href="#reference">Reference</a>
+    <a href="#dev">Dev</a>
+    <a class="gh" href="https://github.com/i-rocky/x-shell">GitHub</a>
+  </span>
+</div></nav>
+
+<header class="hero"><div class="wrap">
+  <span class="badge">one &lt;script&gt; · zero config · no build · ~10&nbsp;KB</span>
+  <h1>A terminal walkthrough<br>is just <span class="tag">&lt;x-shell&gt;</span></h1>
+  <p class="sub">Write a terminal session in plain text. <code>x-shell</code> renders an
+    animated, Powerlevel10k-style zsh — typing, spinners, progress bars, the works —
+    fully isolated in its own Shadow DOM. It's a walkthrough player, not an emulator.</p>
+  <div class="cta">
+    <a class="btn primary" href="#install">Get started</a>
+    <a class="btn ghost" href="https://www.npmjs.com/package/x-shell">npm&nbsp;install&nbsp;x-shell</a>
+    <a class="btn ghost gh" href="https://github.com/i-rocky/x-shell">★ GitHub</a>
+  </div>
+
+  <div style="text-align:left;margin-top:30px">
+    <x-shell os="ubuntu" plugins="node" user="you" host="dev" height="300" controls loop loop-delay="2200">
+      note: Spin up the project locally — copy the commands with the button on each line.
+      cmd: git clone https://github.com/acme/widget.git
+      Cloning into 'widget'...
+      spinner[2s]: Receiving objects => Received 2,418 objects, done.
+      cmd: cd widget && npm install
+      progress[2.4s]: Installing dependencies
+      success: added 219 packages in 2s
+      cmd: npm run dev
+      info: ➜  Local:   http://localhost:5173/
+      success: ✓ ready in 412 ms
+    </x-shell>
+  </div>
+</div></header>
+
+<section id="why"><div class="wrap">
+  <h2>Why x-shell</h2>
+  <p class="lead">Recording a terminal is fiddly and the output is a video you can't copy from.
+    x-shell is just markup — versionable, themeable, and the commands stay selectable.</p>
+  <div class="grid">
+    <div class="card"><span class="ic">✍️</span><h3>Plain-text authoring</h3>
+      <p>Keyword verbs and bare lines. No timelines, no JSON, no recording session.</p></div>
+    <div class="card"><span class="ic">🛡️</span><h3>Shadow-DOM isolated</h3>
+      <p>Its styles can't leak out and your page can't leak in. Drop it anywhere.</p></div>
+    <div class="card"><span class="ic">⌨️</span><h3>Human-feeling typing</h3>
+      <p>Jittered keystrokes, a blink at the prompt before each command, real pacing.</p></div>
+    <div class="card"><span class="ic">📊</span><h3>Authentic effects</h3>
+      <p>Spinners and five real progress-bar styles: pip, wget, curl, cargo, tqdm.</p></div>
+    <div class="card"><span class="ic">⏯️</span><h3>Controls &amp; loop</h3>
+      <p>Optional play/pause, step, replay, and infinite looping with a delay.</p></div>
+    <div class="card"><span class="ic">🎨</span><h3>Themeable</h3>
+      <p>Every color is a CSS variable on <code>:host</code>. Light and dark built in.</p></div>
+  </div>
+</div></section>
+
+<section id="install"><div class="wrap">
+  <h2>Install</h2>
+  <p class="lead">Pick a CDN tag or install from npm. The script auto-registers the
+    <code>&lt;x-shell&gt;</code> element on load — there's nothing to initialize.</p>
+
+  <h3>CDN (fastest)</h3>
+  <pre><span class="c">&lt;!-- unpkg --&gt;</span>
+&lt;script src="https://unpkg.com/x-shell"&gt;&lt;/script&gt;
+
+<span class="c">&lt;!-- or jsDelivr, pinned to a version --&gt;</span>
+&lt;script src="https://cdn.jsdelivr.net/npm/x-shell@0.1.0/x-shell.js"&gt;&lt;/script&gt;</pre>
+
+  <h3>npm</h3>
+  <pre><span class="k">npm</span> install x-shell</pre>
+  <pre><span class="c">// side-effect import registers &lt;x-shell&gt;</span>
+<span class="k">import</span> <span class="s">'x-shell'</span>;</pre>
+
+  <h3>Then write a session</h3>
+  <pre>&lt;x-shell os="ubuntu" plugins="node"&gt;
+  cmd: npm create vite@latest my-app
+  success: ✔ Scaffolding project...
+  cmd: cd my-app &amp;&amp; npm install
+  progress[2s]: Installing
+&lt;/x-shell&gt;</pre>
+  <div class="note"><b>Heads up:</b> a standards custom-element name must contain a hyphen, so
+    the tag is <code>&lt;x-shell&gt;</code> (not <code>&lt;shell&gt;</code>). Register a different
+    tag with <code>XShell.register('my-term')</code> if you like.</div>
+</div></section>
+
+<section id="examples"><div class="wrap">
+  <h2>Examples</h2>
+  <p class="lead">Each terminal has a fixed <code>height</code>, so it scrolls internally and
+    never makes the page jump. Scroll one into view to play it.</p>
+
+  <p class="lbl">Python · pip progress · light mode</p>
+  <div class="demo">
+    <x-shell os="macos" mode="light" plugins="python" user="ana" host="mbp" height="240" bar="pip">
+      cmd: python -m venv .venv && source .venv/bin/activate
+      cmd: pip install torch transformers
+      progress[2.6s]: Downloading torch (797 MB)
+      progress[1.6s]: Downloading transformers (9.8 MB)
+      success: Successfully installed torch-2.3.0 transformers-4.41.0
+    </x-shell>
+    <details class="src"><summary>source</summary><pre>&lt;x-shell os="macos" mode="light" plugins="python" bar="pip"&gt;
+  cmd: python -m venv .venv &amp;&amp; source .venv/bin/activate
+  cmd: pip install torch transformers
+  progress[2.6s]: Downloading torch (797 MB)
+  progress[1.6s]: Downloading transformers (9.8 MB)
+  success: Successfully installed torch-2.3.0 transformers-4.41.0
+&lt;/x-shell&gt;</pre></details>
+  </div>
+
+  <p class="lbl">Docker · spinners · looping with controls</p>
+  <div class="demo">
+    <x-shell os="arch" plugins="docker" user="kai" host="arch" height="240" speed="24" loop loop-delay="1800" controls>
+      cmd: docker compose up -d
+      spinner[1.6s]: Creating network => Network app_default created
+      spinner[2s]: Pulling images => Pulled 3 images
+      success: ✔ Container app-web-1  Started
+      cmd: docker compose ps
+      info: app-web-1   running   0.0.0.0:8080->80/tcp
+    </x-shell>
+  </div>
+
+  <p class="lbl">git workflow · error then recovery</p>
+  <div class="demo">
+    <x-shell os="debian" plugins="node" user="dev" host="box" height="280">
+      cmd: git checkout -b feature/login
+      info: Switched to a new branch 'feature/login'
+      cmd: git push
+      error: fatal: The current branch feature/login has no upstream branch.
+      note: Set the upstream once, then it just works.
+      cmd: git push --set-upstream origin feature/login
+      spinner[1.4s]: Pushing => done
+      success: branch 'feature/login' set up to track 'origin/feature/login'.
+    </x-shell>
+  </div>
+
+  <p class="lbl">All five progress-bar styles</p>
+  <div class="demo">
+    <x-shell os="ubuntu" user="dev" host="box" height="300" gap="500" controls>
+      cmd: pip install package
+      progress[1.8s pip]: Downloading (120 MB)
+      cmd: wget https://example.com/image.iso
+      progress[1.8s wget]: image.iso
+      cmd: curl -O https://example.com/data.tar.gz
+      progress[1.8s curl]:
+      cmd: cargo build --release
+      progress[1.8s arrow]: Compiling crate
+      cmd: tar xzf archive.tar.gz
+      progress[1.8s block]: Extracting
+    </x-shell>
+  </div>
+</div></section>
+
+<section id="guide"><div class="wrap">
+  <h2>User guide</h2>
+  <p class="lead">The content between the tags is a tiny line-based language. Each line is an
+    input the user types, an output the program prints, or a directive. Indentation is
+    stripped, so you can nest it neatly in your HTML.</p>
+
+  <h3>The one rule</h3>
+  <p>A <b>bare line is stdout</b> of the command above it. You only reach for a verb when a
+    line isn't plain output. Only the reserved words below (lowercase, followed by <code>:</code>)
+    are treated as verbs — any other <code>word:</code> renders as ordinary output, so no escaping.</p>
+
+  <h3>Input</h3>
+  <table class="tbl">
+    <tr><th>Verb</th><th>Meaning</th></tr>
+    <tr><td><code>cmd:</code></td><td>The user types a command (prompt + typing animation).</td></tr>
+    <tr><td><code>root:</code></td><td>A command needing root — rendered as <code>sudo &lt;command&gt;</code> on the normal prompt (won't double-prefix if you already wrote <code>sudo</code>).</td></tr>
+    <tr><td><code>type:</code></td><td>The user types a response to a prompt; appends inline to the previous line (e.g. answering <code>[Y/n]</code>).</td></tr>
+    <tr><td><code>key:</code></td><td>A keypress glyph — <code>key: ^C</code>, <code>key: enter</code>, <code>key: tab</code>.</td></tr>
+  </table>
+
+  <h3>Output</h3>
+  <table class="tbl">
+    <tr><th>Verb</th><th>Meaning</th></tr>
+    <tr><td><i>(bare line)</i></td><td>Standard output.</td></tr>
+    <tr><td><code>warning:</code></td><td>Yellow.</td></tr>
+    <tr><td><code>error:</code></td><td>Red.</td></tr>
+    <tr><td><code>success:</code></td><td>Green.</td></tr>
+    <tr><td><code>info:</code></td><td>Cyan.</td></tr>
+    <tr><td><code>note:</code></td><td>An author's aside, rendered as a dimmed shell comment (<code># text</code>).</td></tr>
+  </table>
+
+  <h3>Time &amp; effects</h3>
+  <table class="tbl">
+    <tr><th>Verb</th><th>Meaning</th></tr>
+    <tr><td><code>delay[800]:</code></td><td>Pause; renders nothing.</td></tr>
+    <tr><td><code>spinner[2s]: label =&gt; done</code></td><td>Spinner for the duration, then <code>✓ done</code> (the <code>=&gt; done</code> part is optional).</td></tr>
+    <tr><td><code>progress[3s]: label</code></td><td>Progress bar from 0→100% over the duration.</td></tr>
+  </table>
+
+  <h3>Screen &amp; context</h3>
+  <table class="tbl">
+    <tr><th>Verb</th><th>Meaning</th></tr>
+    <tr><td><code>clear:</code></td><td>Clear the screen.</td></tr>
+    <tr><td><code>prompt: dir=… branch=…</code></td><td>Change prompt context mid-session — keys <code>user host dir branch git</code>.</td></tr>
+    <tr><td><code># …</code></td><td>A source comment; never renders.</td></tr>
+  </table>
+
+  <div class="note"><b>Auto-tracked, no verb needed:</b> <code>cd app</code> (including <code>&amp;&amp;</code>
+    chains) updates the directory segment; <code>git init</code>/<code>git clone</code> reveals the
+    branch segment; <code>git checkout -b dev</code> switches the branch.</div>
+
+  <h3>Durations &amp; styles</h3>
+  <p>The bracket on timed verbs holds a <b>duration</b> and/or a <b>style</b>, in any order:
+    <code>progress[3s pip]</code>, <code>spinner[1.5s line]</code>. Durations accept
+    <code>800</code> (ms), <code>800ms</code>, <code>2s</code>, <code>1.5s</code>.</p>
+  <table class="tbl">
+    <tr><th>Progress styles</th><th>Modeled on</th></tr>
+    <tr><td><code>block</code> <i>(default)</i></td><td>tqdm / modern pip — <code>45%|████▌     |</code></td></tr>
+    <tr><td><code>pip</code></td><td>pip (rich) — <code>━━━━━╸━━━ 45%</code></td></tr>
+    <tr><td><code>wget</code></td><td>wget — <code>45% [====&gt;    ]</code></td></tr>
+    <tr><td><code>curl</code></td><td>curl — <code>######      45.0%</code></td></tr>
+    <tr><td><code>arrow</code></td><td>cargo / configure — <code>[====&gt;   ] 45%</code></td></tr>
+  </table>
+  <p>Spinner styles: <code>dots</code> (default), <code>line</code>, <code>bar</code>,
+    <code>arc</code>, <code>circle</code>.</p>
+</div></section>
+
+<section id="reference"><div class="wrap">
+  <h2>Attribute reference</h2>
+  <p class="lead">All attributes are optional. Set them on the <code>&lt;x-shell&gt;</code> tag.</p>
+  <table class="tbl">
+    <tr><th>Attribute</th><th>Default</th><th>What it does</th></tr>
+    <tr><td><code>os</code></td><td><code>ubuntu</code></td><td>Prompt icon + color. One of <code>ubuntu, debian, macos, arch, fedora, alpine</code>.</td></tr>
+    <tr><td><code>mode</code></td><td><code>dark</code></td><td><code>dark</code> or <code>light</code>.</td></tr>
+    <tr><td><code>plugins</code></td><td>—</td><td>Comma list of prompt segments: <code>node, python, docker, rust, go</code>.</td></tr>
+    <tr><td><code>user</code> <code>host</code> <code>dir</code> <code>branch</code></td><td><code>you localhost ~ main</code></td><td>Initial prompt context.</td></tr>
+    <tr><td><code>title</code></td><td><code>user@host: dir</code></td><td>Window title-bar text.</td></tr>
+    <tr><td><code>height</code></td><td>—</td><td>Fixed screen height (bare number = px, or any CSS length). Scrolls internally, auto-scrolls to the latest line.</td></tr>
+    <tr><td><code>rows</code></td><td>—</td><td>Fixed height in text rows (overrides <code>height</code>).</td></tr>
+    <tr><td><code>speed</code></td><td><code>34</code></td><td>Average ms per typed character.</td></tr>
+    <tr><td><code>gap</code></td><td><code>900</code></td><td>ms the prompt blinks before a command starts typing.</td></tr>
+    <tr><td><code>bar</code></td><td><code>block</code></td><td>Default progress-bar style for the terminal.</td></tr>
+    <tr><td><code>controls</code></td><td>off</td><td>Show the step / play-pause / replay control bar.</td></tr>
+    <tr><td><code>loop</code></td><td>off</td><td>Replay forever.</td></tr>
+    <tr><td><code>loop-delay</code></td><td><code>1400</code></td><td>ms to wait between loops.</td></tr>
+  </table>
+  <p>It plays when scrolled into view and respects <code>prefers-reduced-motion</code> (renders
+    instantly, no animation).</p>
+</div></section>
+
+<section id="dev"><div class="wrap">
+  <h2>Dev guide</h2>
+  <p class="lead">It's a single dependency-free file — a custom element, a line parser, and an
+    async render loop. Hack on it in minutes.</p>
+
+  <h3>Run the docs locally</h3>
+  <pre><span class="k">git</span> clone https://github.com/i-rocky/x-shell
+<span class="k">cd</span> x-shell
+<span class="c"># any static server works</span>
+<span class="k">python3</span> -m http.server 8000
+<span class="c"># open http://localhost:8000</span></pre>
+
+  <h3>How it works</h3>
+  <ul style="color:var(--muted);font-size:15px;line-height:1.8">
+    <li><b>Parse</b> — the tag's text is dedented and each line classified into <code>{verb, dur, style, text}</code>.</li>
+    <li><b>Mount</b> — a Shadow DOM is attached; all CSS lives in one <code>:host</code> stylesheet so nothing leaks.</li>
+    <li><b>Run loop</b> — an async chain renders one item at a time. A run-token guards against overlapping playback when you replay or step.</li>
+    <li><b>Effects</b> — typing, spinners and progress are cancelable, so pause/step snaps them to their final state instantly.</li>
+  </ul>
+
+  <h3>Theming</h3>
+  <p>Override the CSS custom properties on the host. Light/dark ship in the box:</p>
+  <pre>x-shell::part(window){ border-radius: 6px; }
+x-shell{ --bg:#1e1e2e; --fg:#cdd6f4; --accent2:#89b4fa; }</pre>
+  <p>A named-theme registry hook exists for the future: <code>XShell.theme('name', {…})</code>.</p>
+
+  <h3>Custom tag</h3>
+  <pre><span class="k">import</span> <span class="s">'x-shell'</span>;
+<span class="c">// also expose it under your own hyphenated name</span>
+XShell.register(<span class="s">'acme-term'</span>);</pre>
+</div></section>
+
+<footer><div class="wrap">
+  <span>MIT licensed · <code>x-shell</code></span>
+  <span><a href="https://github.com/i-rocky/x-shell">GitHub</a> ·
+    <a href="https://www.npmjs.com/package/x-shell">npm</a> ·
+    <a href="#install">Docs</a></span>
+</div></footer>
+
+<script src="x-shell.js"></script>
+</body>
+</html>
