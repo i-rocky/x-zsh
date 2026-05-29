@@ -23,7 +23,13 @@
  *
  * Attributes: os, mode=dark|light, plugins, user, host, dir, branch, title,
  *   speed (ms/char), gap (ms the prompt blinks before typing), bar (default
- *   progress style), loop, loop-delay, controls.
+ *   progress style), height, rows, loop, loop-delay, controls.
+ *
+ * Plugins take an optional version after @:  plugins="node@22,go@1.23,k8s@staging".
+ * Add or override OS/plugins at runtime:
+ *   XZsh.plugin('acme', { icon: '🚀', txt: 'v2', bg: '#5b21b6', fg: '#fff' });
+ *   XZsh.os('myos', { name: 'MyOS', icon: '🛸', bg: '#222', fg: '#fff' });
+ * (icon is inserted as HTML — emoji, text, or even an inline SVG all work.)
  *
  * Only the reserved words above (lowercase, followed by ':') are verbs.
  * Any other `word:` is plain output. cd / git are auto-tracked in the prompt.
@@ -85,7 +91,75 @@
     terraform: { icon: '🏗', txt: '1.8',      bg: '#7B42BC', fg: '#fff' },
     k8s:       { icon: '☸', txt: 'prod',      bg: '#326CE5', fg: '#fff' },
     aws:       { icon: '☁', txt: 'prod',      bg: '#232F3E', fg: '#FF9900' },
-    gcp:       { icon: '☁', txt: 'staging',   bg: '#4285F4', fg: '#fff' }
+    gcp:       { icon: '☁', txt: 'staging',   bg: '#4285F4', fg: '#fff' },
+    // languages
+    cpp:       { icon: 'C++', txt: '20',   bg: '#00599C', fg: '#fff' },
+    c:         { icon: 'C',  txt: '17',    bg: '#555555', fg: '#fff' },
+    csharp:    { icon: 'C#', txt: '12',    bg: '#178600', fg: '#fff' },
+    fsharp:    { icon: 'F#', txt: '8',     bg: '#378BBA', fg: '#fff' },
+    scala:     { icon: '🌀', txt: '3.4',   bg: '#DC322F', fg: '#fff' },
+    clojure:   { icon: '🍀', txt: '1.11',  bg: '#5881D8', fg: '#fff' },
+    erlang:    { icon: '☎', txt: '27',     bg: '#A90533', fg: '#fff' },
+    julia:     { icon: '🔮', txt: '1.10',  bg: '#9558B2', fg: '#fff' },
+    r:         { icon: '📊', txt: '4.4',   bg: '#276DC3', fg: '#fff' },
+    nim:       { icon: '👑', txt: '2.0',   bg: '#FFE953', fg: '#2b2a10' },
+    crystal:   { icon: '💠', txt: '1.12',  bg: '#222222', fg: '#fff' },
+    elm:       { icon: '🌳', txt: '0.19',  bg: '#60B5CC', fg: '#04282c' },
+    ocaml:     { icon: '🐫', txt: '5.1',   bg: '#EE6A1A', fg: '#fff' },
+    gleam:     { icon: '✨', txt: '1.3',   bg: '#FFAFF3', fg: '#2b1a28' },
+    solidity:  { icon: '⟠', txt: '0.8',    bg: '#363636', fg: '#fff' },
+    // frameworks
+    react:     { icon: '⚛', txt: '18',     bg: '#20232A', fg: '#61DAFB' },
+    vue:       { icon: 'V', txt: '3',      bg: '#42B883', fg: '#06281a' },
+    angular:   { icon: 'A', txt: '18',     bg: '#DD0031', fg: '#fff' },
+    svelte:    { icon: '🧡', txt: '5',     bg: '#FF3E00', fg: '#fff' },
+    next:      { icon: '▲', txt: '14',     bg: '#000000', fg: '#fff' },
+    nuxt:      { icon: '⛰', txt: '3',      bg: '#00DC82', fg: '#04281a' },
+    astro:     { icon: '🚀', txt: '4',     bg: '#FF5D01', fg: '#fff' },
+    vite:      { icon: '⚡', txt: '5',     bg: '#646CFF', fg: '#fff' },
+    tailwind:  { icon: '🌬', txt: '3.4',   bg: '#38BDF8', fg: '#04222e' },
+    rails:     { icon: '🛤', txt: '7.1',   bg: '#CC0000', fg: '#fff' },
+    django:    { icon: '🎸', txt: '5.0',   bg: '#092E20', fg: '#fff' },
+    laravel:   { icon: '🔺', txt: '11',    bg: '#FF2D20', fg: '#fff' },
+    spring:    { icon: '🌱', txt: '6',     bg: '#6DB33F', fg: '#06280f' },
+    flutter:   { icon: '🦋', txt: '3',     bg: '#02569B', fg: '#fff' },
+    // package managers
+    npm:       { icon: '📦', txt: '10',    bg: '#CB3837', fg: '#fff' },
+    yarn:      { icon: '🧶', txt: '4',     bg: '#2C8EBB', fg: '#fff' },
+    pnpm:      { icon: '📦', txt: '9',     bg: '#F69220', fg: '#2b1a08' },
+    brew:      { icon: '🍺', txt: '4.3',   bg: '#FBB040', fg: '#2b1f08' },
+    poetry:    { icon: '📜', txt: '1.8',   bg: '#60A5FA', fg: '#04223e' },
+    gradle:    { icon: '🐘', txt: '8.7',   bg: '#02303A', fg: '#fff' },
+    maven:     { icon: 'mvn', txt: '3.9',  bg: '#C71A36', fg: '#fff' },
+    conda:     { icon: '🅒', txt: 'base',  bg: '#44A833', fg: '#fff' },
+    // databases
+    postgres:  { icon: '🐘', txt: '16',    bg: '#336791', fg: '#fff' },
+    mysql:     { icon: '🐬', txt: '8.4',   bg: '#4479A1', fg: '#fff' },
+    mongodb:   { icon: '🍃', txt: '7',     bg: '#47A248', fg: '#06280f' },
+    redis:     { icon: '🟥', txt: '7.4',   bg: '#DC382D', fg: '#fff' },
+    sqlite:    { icon: '🗄', txt: '3',     bg: '#003B57', fg: '#fff' },
+    mariadb:   { icon: '🦭', txt: '11',    bg: '#003545', fg: '#fff' },
+    elastic:   { icon: '🔍', txt: '8',     bg: '#005571', fg: '#fff' },
+    // cloud / devops
+    azure:     { icon: '☁', txt: 'prod',   bg: '#0078D4', fg: '#fff' },
+    helm:      { icon: '⎈', txt: '3',      bg: '#0F1689', fg: '#fff' },
+    ansible:   { icon: '🤖', txt: '',      bg: '#EE0000', fg: '#fff' },
+    vault:     { icon: '🔐', txt: '1.16',  bg: '#111111', fg: '#FFD814' },
+    nginx:     { icon: '🟢', txt: '1.27',  bg: '#009639', fg: '#fff' },
+    vercel:    { icon: '▲', txt: '',       bg: '#000000', fg: '#fff' },
+    netlify:   { icon: '🌐', txt: '',      bg: '#00C7B7', fg: '#04282c' },
+    firebase:  { icon: '🔥', txt: '',      bg: '#FFCA28', fg: '#2b2008' },
+    supabase:  { icon: '⚡', txt: '',      bg: '#3ECF8E', fg: '#06281a' },
+    cloudflare:{ icon: '🟠', txt: '',      bg: '#F38020', fg: '#fff' },
+    github:    { icon: '🐙', txt: '',      bg: '#181717', fg: '#fff' },
+    gitlab:    { icon: '🦊', txt: '',      bg: '#FC6D26', fg: '#fff' },
+    podman:    { icon: '🦭', txt: '5',     bg: '#892CA0', fg: '#fff' },
+    // editors / shells
+    vim:       { icon: '🟩', txt: '',      bg: '#019733', fg: '#fff' },
+    neovim:    { icon: '🌿', txt: '',      bg: '#57A143', fg: '#06280f' },
+    tmux:      { icon: '🗔', txt: '',      bg: '#1BB91F', fg: '#06280f' },
+    zsh:       { icon: '🐚', txt: '',      bg: '#4E4E4E', fg: '#fff' },
+    bash:      { icon: '🐚', txt: '',      bg: '#4EAA25', fg: '#fff' }
   };
 
   var COPY_SVG = '<svg viewBox="0 0 24 24" width="12" height="12" fill="none" ' +
@@ -231,7 +305,10 @@
         venv: null,
         os: (a('os') || 'ubuntu').toLowerCase(),
         plugins: (a('plugins') || '').split(',').map(function (s) { return s.trim(); })
-          .filter(Boolean)
+          .filter(Boolean).map(function (tok) {
+            var at = tok.indexOf('@');                  // name@version override
+            return at >= 0 ? { name: tok.slice(0, at), txt: tok.slice(at + 1) } : { name: tok };
+          })
       };
     }
 
@@ -437,13 +514,14 @@
       segs.push({ html: '📁 ' + esc(c.dir), bg: '#2a6df4', fg: '#fff' });
       if (c.git) segs.push({ html: '⎇ ' + esc(c.branch), bg: '#3fb950', fg: '#04210d' });
       c.plugins.forEach(function (p) {
-        var d = PLUGINS[p];
+        var d = PLUGINS[p.name];
         if (!d) return;
-        if (p === 'python') {                 // only shown once a venv is activated
+        if (p.name === 'python' && p.txt == null) {  // venv-gated unless an explicit version is set
           if (c.venv) segs.push({ html: d.icon + ' ' + esc(c.venv), bg: d.bg, fg: d.fg });
-        } else {
-          segs.push({ html: d.icon + ' ' + d.txt, bg: d.bg, fg: d.fg });
+          return;
         }
+        var txt = p.txt != null ? p.txt : d.txt;      // name@version overrides the default
+        segs.push({ html: d.icon + (txt ? ' ' + esc(txt) : ''), bg: d.bg, fg: d.fg });
       });
       return segs;
     }
@@ -780,6 +858,16 @@
   // Theme registry hook (for later): Term.theme('name', { bg, fg, muted, ... })
   Term.themes = {};
   Term.theme = function (name, vars) { Term.themes[name] = vars; };
+
+  // Register or override a prompt plugin / OS. def fields:
+  //   plugin: { icon, txt, bg, fg }   os: { name, icon, bg, fg }
+  // `icon` is inserted as HTML, so it may be an emoji, text, or inline SVG.
+  // Call before the element scrolls into view (e.g. in <head>).
+  Term.plugin = function (name, def) { PLUGINS[name] = def; return Term; };
+  Term.os = function (name, def) { OS[name] = def; return Term; };
+  Term.plugins = PLUGINS;     // exposed for inspection
+  Term.osList = OS;
+
   Term.register = function (tag) {
     if (!customElements.get(tag)) customElements.define(tag, Term);
   };

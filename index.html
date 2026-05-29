@@ -198,13 +198,6 @@
       progress[1.6s]: Downloading transformers (9.8 MB)
       success: Successfully installed torch-2.3.0 transformers-4.41.0
     </x-zsh>
-    <details class="src"><summary>source</summary><pre>&lt;x-zsh os="macos" mode="light" plugins="python" bar="pip"&gt;
-  cmd: python -m venv .venv &amp;&amp; source .venv/bin/activate
-  cmd: pip install torch transformers
-  progress[2.6s]: Downloading torch (797 MB)
-  progress[1.6s]: Downloading transformers (9.8 MB)
-  success: Successfully installed torch-2.3.0 transformers-4.41.0
-&lt;/x-zsh&gt;</pre></details>
   </div>
 
   <p class="lbl">Docker · spinners · looping with controls</p>
@@ -261,6 +254,17 @@
       cmd: kubectl rollout restart deploy/server
       success: deployment.apps/server restarted
       info: rollout status: 3/3 pods ready
+    </x-zsh>
+  </div>
+
+  <p class="lbl">Pinned versions &amp; a custom plugin</p>
+  <div class="demo">
+    <x-zsh os="arch" plugins="node@22.3.0,deno@1.45,acme@v2.0" user="dev" host="lab" height="200">
+      note: Pin any plugin with name@version — and register your own with XZsh.plugin().
+      cmd: node --version
+      v22.3.0
+      cmd: acme deploy
+      success: ✓ shipped via acme
     </x-zsh>
   </div>
 </div></section>
@@ -383,6 +387,15 @@
 x-zsh{ --bg:#1e1e2e; --fg:#cdd6f4; --accent2:#89b4fa; }</pre>
   <p>A named-theme registry hook exists for the future: <code>XZsh.theme('name', {…})</code>.</p>
 
+  <h3>Versions &amp; custom plugins</h3>
+  <p>Pin any plugin's version inline with <code>name@version</code>, and register your
+    own segments (the <code>icon</code> can be emoji, text, or even an inline SVG):</p>
+  <pre>&lt;x-zsh plugins="node@22.3.0, go@1.23, k8s@staging"&gt; … &lt;/x-zsh&gt;
+
+<span class="c">// register before the element scrolls into view (e.g. in &lt;head&gt;)</span>
+XZsh.plugin(<span class="s">'acme'</span>, { icon: <span class="s">'🚀'</span>, txt: <span class="s">'v2'</span>, bg: <span class="s">'#5b21b6'</span>, fg: <span class="s">'#fff'</span> });
+XZsh.os(<span class="s">'myos'</span>, { name: <span class="s">'MyOS'</span>, icon: <span class="s">'🛸'</span>, bg: <span class="s">'#222'</span>, fg: <span class="s">'#fff'</span> });</pre>
+
   <h3>Custom tag</h3>
   <pre><span class="k">import</span> <span class="s">'x-zsh'</span>;
 <span class="c">// also expose it under your own hyphenated name</span>
@@ -397,5 +410,37 @@ XZsh.register(<span class="s">'acme-term'</span>);</pre>
 </div></footer>
 
 <script src="x-zsh.js"></script>
+<script>
+  // demo: a custom plugin used by the "Pinned versions" example
+  XZsh.plugin('acme', { icon: '🚀', txt: 'v2.0', bg: '#5b21b6', fg: '#fff' });
+
+  // auto-build a "source" disclosure under every <x-zsh> from its own markup
+  (function () {
+    function dedent(raw) {
+      var lines = raw.replace(/\t/g, '  ').replace(/\r/g, '').split('\n');
+      while (lines.length && !lines[0].trim()) lines.shift();
+      while (lines.length && !lines[lines.length - 1].trim()) lines.pop();
+      var ind = lines.filter(function (l) { return l.trim(); })
+        .map(function (l) { return l.match(/^ */)[0].length; });
+      var min = ind.length ? Math.min.apply(null, ind) : 0;
+      return lines.map(function (l) { return l.slice(min); });
+    }
+    function esc(s) {
+      return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    }
+    document.querySelectorAll('x-zsh').forEach(function (el) {
+      if (el.__srcBuilt) return; el.__srcBuilt = true;
+      var attrs = Array.prototype.map.call(el.attributes, function (a) {
+        return a.value === '' ? a.name : a.name + '="' + a.value + '"';
+      }).join(' ');
+      var body = dedent(el.textContent).map(function (l) { return '  ' + l; }).join('\n');
+      var src = '<x-zsh' + (attrs ? ' ' + attrs : '') + '>\n' + body + '\n</x-zsh>';
+      var d = document.createElement('details');
+      d.className = 'src';
+      d.innerHTML = '<summary>source</summary><pre>' + esc(src) + '</pre>';
+      el.insertAdjacentElement('afterend', d);
+    });
+  })();
+</script>
 </body>
 </html>

@@ -136,7 +136,7 @@ All optional, set on the `<x-zsh>` tag.
 |---|---|---|
 | `os` | `ubuntu` | Prompt icon + brand color. One of: `ubuntu, debian, macos, arch, fedora, alpine, mint, manjaro, kali, centos, rhel, rocky, alma, opensuse, raspbian, gentoo, void, nixos, popos, elementary, windows, wsl, freebsd, termux`. |
 | `mode` | `dark` | `dark` or `light`. |
-| `plugins` | — | Comma list of prompt segments. Languages/runtimes: `node, python, docker, rust, go, ruby, php, java, kotlin, swift, deno, bun, dotnet, elixir, dart, zig, lua, perl, haskell`. Infra/cloud: `terraform, k8s, aws, gcp`. (`python` only shows once a venv is activated.) |
+| `plugins` | — | Comma list of prompt segments, each with an optional `@version` (e.g. `node@22,go@1.23,k8s@staging`). 85+ built-ins span languages, runtimes, frameworks, package managers, databases, and cloud/devops (`node, python, go, rust, ruby, php, java, react, vue, postgres, redis, docker, k8s, aws, terraform, …`). Register your own with `XZsh.plugin()`. (`python` shows only after a venv is activated, unless you pass an explicit `python@3.12`.) |
 | `user` `host` `dir` `branch` | `you localhost ~ main` | Initial prompt context. |
 | `title` | `user@host: dir` | Window title-bar text. |
 | `height` | — | Fixed screen height (px number or CSS length). Scrolls internally; auto-scrolls. |
@@ -167,6 +167,24 @@ x-zsh::part(window) { border-radius: 6px; }
 
 `mode="light"` ships a light palette. A named-theme registry hook exists for the future:
 `XZsh.theme('name', { … })`.
+
+## Custom plugins & pinned versions
+
+Pin any segment's version inline, and register your own segments at runtime. The `icon`
+may be an emoji, plain text, or even an inline SVG:
+
+```html
+<x-zsh plugins="node@22.3.0, go@1.23, k8s@staging"> … </x-zsh>
+```
+
+```js
+import 'x-zsh';
+// register before the element scrolls into view (e.g. in <head>)
+XZsh.plugin('acme', { icon: '🚀', txt: 'v2', bg: '#5b21b6', fg: '#fff' });
+XZsh.os('myos',    { name: 'MyOS', icon: '🛸', bg: '#222', fg: '#fff' });
+```
+
+Then `<x-zsh os="myos" plugins="acme@v3">` renders your custom OS and segment.
 
 ---
 
