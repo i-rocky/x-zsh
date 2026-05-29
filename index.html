@@ -287,6 +287,24 @@
       success: ✓ shipped via acme
     </x-zsh>
   </div>
+
+  <p class="lbl">Named themes — <code>theme="dracula"</code>, <code>theme="catppuccin"</code>, …</p>
+  <div class="demo">
+    <x-zsh os="debian" plugins="node" theme="dracula" user="dev" host="box" height="180" speed="22">
+      note: Set theme="dracula" — the palette changes, brand logos stay.
+      cmd: npm test
+      success: ✓ 128 passing
+      warning: 1 deprecation
+    </x-zsh>
+  </div>
+  <div class="demo">
+    <x-zsh os="arch" plugins="python" theme="catppuccin" user="ana" host="mbp" height="180" speed="22">
+      cmd: source .venv/bin/activate
+      cmd: pytest -q
+      success: ✓ 64 passed
+      info: coverage 91%
+    </x-zsh>
+  </div>
 </div></section>
 
 <section id="guide"><div class="wrap">
@@ -365,6 +383,7 @@
     <tr><th>Attribute</th><th>Default</th><th>What it does</th></tr>
     <tr><td><code>os</code></td><td><code>ubuntu</code></td><td>Prompt icon + brand color. One of <code>ubuntu, debian, macos, arch, fedora, alpine, mint, manjaro, kali, centos, rhel, rocky, alma, opensuse, raspbian, gentoo, void, nixos, popos, elementary, windows, wsl, freebsd, termux</code>.</td></tr>
     <tr><td><code>mode</code></td><td><code>dark</code></td><td><code>dark</code> or <code>light</code>.</td></tr>
+    <tr><td><code>theme</code></td><td>—</td><td>Named palette: <code>tokyonight, dracula, nord, catppuccin, gruvbox, solarized, onedark, rosepine</code>. Register more with <code>XZsh.theme()</code>.</td></tr>
     <tr><td><code>plugins</code></td><td>—</td><td>Comma list of prompt segments. Languages/runtimes: <code>node, python, docker, rust, go, ruby, php, java, kotlin, swift, deno, bun, dotnet, elixir, dart, zig, lua, perl, haskell</code>. Infra/cloud: <code>terraform, k8s, aws, gcp</code>. <code>python</code> shows only after a venv is activated.</td></tr>
     <tr><td><code>user</code> <code>host</code> <code>dir</code> <code>branch</code></td><td><code>you localhost ~ main</code></td><td>Initial prompt context.</td></tr>
     <tr><td><code>title</code></td><td><code>user@host: dir</code></td><td>Window title-bar text.</td></tr>
@@ -402,10 +421,15 @@
   </ul>
 
   <h3>Theming</h3>
-  <p>Override the CSS custom properties on the host. Light/dark ship in the box:</p>
+  <p>Use a built-in palette with <code>theme="…"</code> (tokyonight, dracula, nord,
+    catppuccin, gruvbox, solarized, onedark, rosepine), register your own, or override the
+    CSS custom properties directly — they're all themeable:</p>
+  <pre><span class="c">// keys: bg fg muted accent accent2 ok warn err info comment dir git</span>
+XZsh.theme(<span class="s">'mytheme'</span>, { bg: <span class="s">'#101418'</span>, fg: <span class="s">'#e6edf3'</span>, accent: <span class="s">'#3fb950'</span> });</pre>
   <pre>x-zsh::part(window){ border-radius: 6px; }
 x-zsh{ --bg:#1e1e2e; --fg:#cdd6f4; --accent2:#89b4fa; }</pre>
-  <p>A named-theme registry hook exists for the future: <code>XZsh.theme('name', {…})</code>.</p>
+  <p>OS/plugin segments keep their brand colors; the theme controls the background, text,
+    prompt accent, output colors, and the dir/git segments.</p>
 
   <h3>Icons load on demand</h3>
   <p>Built-in logos are real brand icons <b>vendored into the package</b> (no runtime

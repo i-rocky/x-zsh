@@ -21,9 +21,11 @@
  *   prompt: user=… host=… dir=… branch=… git=true   change context
  *   # …                             source comment, never rendered
  *
- * Attributes: os, mode=dark|light, plugins, user, host, dir, branch, title,
- *   speed (ms/char), gap (ms the prompt blinks before typing), bar (default
- *   progress style), height, rows, loop, loop-delay, controls.
+ * Attributes: os, mode=dark|light, theme (named palette), plugins, user, host,
+ *   dir, branch, title, speed (ms/char), gap (ms the prompt blinks before typing),
+ *   bar (default progress style), height, rows, loop, loop-delay, controls.
+ * Built-in themes: tokyonight, dracula, nord, catppuccin, gruvbox, solarized,
+ *   onedark, rosepine. Register more with XZsh.theme('name', { bg, fg, accent, … }).
  *
  * Plugins take an optional version after @:  plugins="node@22,go@1.23,k8s@staging".
  * Built-in logos are vendored under icons/ (see icons/CREDITS.md) and loaded lazily,
@@ -358,7 +360,10 @@
       var sh = this.attachShadow({ mode: 'open' });
       var title = this.getAttribute('title') ||
         (this.ctx.user + '@' + this.ctx.host + ': ' + this.ctx.dir);
-      var light = (this.getAttribute('mode') || 'dark') === 'light';
+      // a named theme sets the palette; mode=light is the built-in light palette
+      var theme = Term.themes[this.getAttribute('theme')];
+      if (theme) for (var k in theme) this.style.setProperty('--' + k, theme[k]);
+      var light = !theme && (this.getAttribute('mode') || 'dark') === 'light';
 
       sh.innerHTML =
         '<style>' + Term.css + '</style>' +
@@ -549,8 +554,8 @@
       }
 
       segs.push({ html: lead(iconUrl(os, c.os), os.icon) + esc(os.name), bg: os.bg, fg: os.fg });
-      segs.push({ html: esc(c.dir), bg: '#2a6df4', fg: '#fff' });
-      if (c.git) segs.push({ html: maskIcon(Term.iconBase + 'git.svg') + esc(c.branch), bg: '#3fb950', fg: '#04210d' });
+      segs.push({ html: esc(c.dir), bg: 'var(--dir,#2a6df4)', fg: '#fff' });
+      if (c.git) segs.push({ html: maskIcon(Term.iconBase + 'git.svg') + esc(c.branch), bg: 'var(--git,#3fb950)', fg: '#04210d' });
 
       c.plugins.forEach(function (p) {
         var d = PLUGINS[p.name];
@@ -863,6 +868,8 @@
 
   Term.css = [
     ':host{display:block;margin:1.2em 0;--bg:#1a1b26;--fg:#c0caf5;--muted:#565f89;',
+    '--accent:#9ece6a;--accent2:#7aa2f7;--ok:#9ece6a;--warn:#e0af68;--err:#f7768e;',
+    '--info:#7dcfff;--comment:#6a9955;--dir:#2a6df4;--git:#3fb950;',
     '--font:"SFMono-Regular",ui-monospace,"Cascadia Code","JetBrains Mono",Menlo,Consolas,monospace;',
     'font-family:var(--font);}',
     '.win{background:var(--bg);border-radius:10px;overflow:hidden;',
@@ -888,7 +895,7 @@
     '.sep::before{content:"";position:absolute;inset:0;background:var(--prev);',
     'clip-path:polygon(0 0,0 100%,100% 50%);}',
     '.pline{display:flex;align-items:baseline;flex-wrap:wrap;position:relative;padding-right:34px;}',
-    '.pchar{color:#9ece6a;font-weight:700;margin-right:.55em;}',
+    '.pchar{color:var(--accent);font-weight:700;margin-right:.55em;}',
     '.typed{white-space:pre-wrap;}',
     '.copy-all{position:absolute;right:9px;top:50%;transform:translateY(-50%);',
     'display:inline-flex;align-items:center;justify-content:center;width:26px;height:22px;',
@@ -910,19 +917,19 @@
     '@keyframes blink{50%{opacity:0;}}',
     '.out{white-space:pre-wrap;animation:fadein .18s ease both;}',
     '@keyframes fadein{from{opacity:0;transform:translateY(2px);}to{opacity:1;transform:none;}}',
-    '.out.warn{color:#e0af68;}',
-    '.out.err{color:#f7768e;}',
-    '.out.ok{color:#9ece6a;}',
-    '.out.info{color:#7dcfff;}',
+    '.out.warn{color:var(--warn);}',
+    '.out.err{color:var(--err);}',
+    '.out.ok{color:var(--ok);}',
+    '.out.info{color:var(--info);}',
     '.out.resp{color:var(--fg);}',
-    '.spin .glyph{color:#7aa2f7;}',
-    '.spin .tick,.out.ok .tick{color:#9ece6a;font-weight:700;}',
+    '.spin .glyph{color:var(--accent2);}',
+    '.spin .tick,.out.ok .tick{color:var(--ok);font-weight:700;}',
     '.out.prog{white-space:pre;}',
-    '.prog .fc{color:#7aa2f7;}',
+    '.prog .fc{color:var(--accent2);}',
     '.prog .rc{color:#414868;}',
     '.win.light .prog .rc{color:#c4c8d4;}',
     '.prog-pip .fc{color:#9ece6a;}',
-    '.out.comment{color:#6a9955;}',
+    '.out.comment{color:var(--comment);}',
     '.win.light .out.comment{color:#5a8a3a;}',
     '.keys .keycap{display:inline-block;padding:.05em .5em;border-radius:4px;',
     'background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.16);',
@@ -941,9 +948,20 @@
     '.screen::-webkit-scrollbar-thumb{background:rgba(255,255,255,.12);border-radius:9px;}'
   ].join('');
 
-  // Theme registry hook (for later): Term.theme('name', { bg, fg, muted, ... })
-  Term.themes = {};
-  Term.theme = function (name, vars) { Term.themes[name] = vars; };
+  // Named themes set CSS custom properties on the host (theme="dracula"). Keys:
+  // bg fg muted accent accent2 ok warn err info comment dir git. Register your own
+  // with XZsh.theme('name', { … }). OS/plugin segments keep their brand colors.
+  Term.themes = {
+    tokyonight: { bg: '#1a1b26', fg: '#c0caf5', muted: '#565f89', accent: '#9ece6a', accent2: '#7aa2f7', ok: '#9ece6a', warn: '#e0af68', err: '#f7768e', info: '#7dcfff', comment: '#6a9955', dir: '#2a6df4', git: '#3fb950' },
+    dracula: { bg: '#282a36', fg: '#f8f8f2', muted: '#6272a4', accent: '#50fa7b', accent2: '#bd93f9', ok: '#50fa7b', warn: '#f1fa8c', err: '#ff5555', info: '#8be9fd', comment: '#6272a4', dir: '#bd93f9', git: '#50fa7b' },
+    nord: { bg: '#2e3440', fg: '#d8dee9', muted: '#4c566a', accent: '#a3be8c', accent2: '#88c0d0', ok: '#a3be8c', warn: '#ebcb8b', err: '#bf616a', info: '#81a1c1', comment: '#616e88', dir: '#5e81ac', git: '#a3be8c' },
+    catppuccin: { bg: '#1e1e2e', fg: '#cdd6f4', muted: '#6c7086', accent: '#a6e3a1', accent2: '#89b4fa', ok: '#a6e3a1', warn: '#f9e2af', err: '#f38ba8', info: '#94e2d5', comment: '#6c7086', dir: '#89b4fa', git: '#a6e3a1' },
+    gruvbox: { bg: '#282828', fg: '#ebdbb2', muted: '#928374', accent: '#b8bb26', accent2: '#83a598', ok: '#b8bb26', warn: '#fabd2f', err: '#fb4934', info: '#8ec07c', comment: '#928374', dir: '#458588', git: '#98971a' },
+    solarized: { bg: '#002b36', fg: '#93a1a1', muted: '#586e75', accent: '#859900', accent2: '#268bd2', ok: '#859900', warn: '#b58900', err: '#dc322f', info: '#2aa198', comment: '#586e75', dir: '#268bd2', git: '#859900' },
+    onedark: { bg: '#282c34', fg: '#abb2bf', muted: '#5c6370', accent: '#98c379', accent2: '#61afef', ok: '#98c379', warn: '#e5c07b', err: '#e06c75', info: '#56b6c2', comment: '#7f848e', dir: '#61afef', git: '#98c379' },
+    rosepine: { bg: '#191724', fg: '#e0def4', muted: '#6e6a86', accent: '#9ccfd8', accent2: '#c4a7e7', ok: '#9ccfd8', warn: '#f6c177', err: '#eb6f92', info: '#31748f', comment: '#6e6a86', dir: '#31748f', git: '#9ccfd8' }
+  };
+  Term.theme = function (name, vars) { Term.themes[name] = vars; return Term; };
 
   // Where vendored logos are served from (resolved next to this script). Override before
   // any element renders, e.g. XZsh.iconBase = '/my/icons/'.

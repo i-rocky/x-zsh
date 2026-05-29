@@ -136,6 +136,7 @@ All optional, set on the `<x-zsh>` tag.
 |---|---|---|
 | `os` | `ubuntu` | Prompt icon + brand color. One of: `ubuntu, debian, macos, arch, fedora, alpine, mint, manjaro, kali, centos, rhel, rocky, alma, opensuse, raspbian, gentoo, void, nixos, popos, elementary, windows, wsl, freebsd, termux`. |
 | `mode` | `dark` | `dark` or `light`. |
+| `theme` | — | Named palette: `tokyonight, dracula, nord, catppuccin, gruvbox, solarized, onedark, rosepine`. Register more with `XZsh.theme()`. |
 | `plugins` | — | Comma list of prompt segments, each with an optional `@version` (e.g. `node@22,go@1.23,k8s@staging`). 85+ built-ins span languages, runtimes, frameworks, package managers, databases, and cloud/devops (`node, python, go, rust, ruby, php, java, react, vue, postgres, redis, docker, k8s, aws, terraform, …`). Register your own with `XZsh.plugin()`. (`python` shows only after a venv is activated, unless you pass an explicit `python@3.12`.) |
 | `user` `host` `dir` `branch` | `you localhost ~ main` | Initial prompt context. |
 | `title` | `user@host: dir` | Window title-bar text. |
@@ -154,19 +155,29 @@ It plays when scrolled into view.
 
 ## Theming
 
-Every color is a CSS custom property on the host:
+Pick a built-in palette with the `theme` attribute — `tokyonight, dracula, nord,
+catppuccin, gruvbox, solarized, onedark, rosepine`:
+
+```html
+<x-zsh theme="dracula"> … </x-zsh>
+```
+
+Register your own (keys: `bg fg muted accent accent2 ok warn err info comment dir git`):
+
+```js
+XZsh.theme('mytheme', { bg: '#101418', fg: '#e6edf3', accent: '#3fb950', accent2: '#58a6ff' });
+```
+
+Or just override the CSS custom properties directly on the host — they're all themeable:
 
 ```css
-x-zsh {
-  --bg: #1e1e2e;
-  --fg: #cdd6f4;
-  --accent2: #89b4fa; /* prompt / spinner accent */
-}
+x-zsh { --bg: #1e1e2e; --fg: #cdd6f4; --accent2: #89b4fa; }
 x-zsh::part(window) { border-radius: 6px; }
 ```
 
-`mode="light"` ships a light palette. A named-theme registry hook exists for the future:
-`XZsh.theme('name', { … })`.
+OS/plugin segments keep their brand colors; the theme controls the background, text,
+prompt accent, output colors, and the dir/git segments. `mode="light"` is a quick built-in
+light palette (a `theme` takes precedence over it).
 
 ## Custom plugins & pinned versions
 
