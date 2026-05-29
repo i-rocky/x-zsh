@@ -1,22 +1,27 @@
 {
   "name": "x-zsh",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "description": "Drop-in animated terminal walkthroughs as a custom element. Write a session in plain text; it renders an animated p10k-style zsh, isolated in Shadow DOM. Zero config, no build, not an emulator.",
   "main": "x-zsh.js",
   "module": "x-zsh.js",
-  "unpkg": "x-zsh.js",
-  "jsdelivr": "x-zsh.js",
+  "unpkg": "x-zsh.min.js",
+  "jsdelivr": "x-zsh.min.js",
   "exports": {
     ".": "./x-zsh.js"
   },
   "sideEffects": true,
   "files": [
     "x-zsh.js",
+    "x-zsh.min.js",
     "README.md",
     "LICENSE"
   ],
   "scripts": {
-    "start": "python3 -m http.server 8000"
+    "start": "python3 -m http.server 8000",
+    "build": "esbuild x-zsh.js --minify --legal-comments=none --target=es2019 --outfile=x-zsh.min.js"
+  },
+  "devDependencies": {
+    "esbuild": "^0.24.0"
   },
   "keywords": [
     "terminal",

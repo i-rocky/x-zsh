@@ -5,6 +5,26 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>x-zsh — animated terminal walkthroughs as an HTML element</title>
 <meta name="description" content="Drop in one script and write a terminal session in plain text. x-zsh renders an animated, p10k-style zsh walkthrough, isolated in Shadow DOM. Zero config, no build, not an emulator.">
+
+<!-- Open Graph (Facebook, LinkedIn, Discord, …) -->
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="x-zsh">
+<meta property="og:title" content="x-zsh — animated terminal walkthroughs as an HTML element">
+<meta property="og:description" content="Write a terminal session in plain text; x-zsh renders an animated p10k-style zsh, isolated in Shadow DOM. Zero config, no build, not an emulator.">
+<meta property="og:url" content="https://i-rocky.github.io/x-zsh/">
+<meta property="og:image" content="https://i-rocky.github.io/x-zsh/media/og.png">
+<meta property="og:image:type" content="image/png">
+<meta property="og:image:width" content="2400">
+<meta property="og:image:height" content="1260">
+<meta property="og:image:alt" content="x-zsh rendering an animated terminal install walkthrough">
+
+<!-- Twitter / X -->
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="x-zsh — animated terminal walkthroughs as an HTML element">
+<meta name="twitter:description" content="Write a terminal session in plain text; x-zsh renders an animated p10k-style zsh, isolated in Shadow DOM. Zero config, no build.">
+<meta name="twitter:image" content="https://i-rocky.github.io/x-zsh/media/og.png">
+<meta name="twitter:image:alt" content="x-zsh rendering an animated terminal install walkthrough">
+
 <style>
   :root{
     --bg:#0c0d14; --panel:#12131c; --line:#222538; --fg:#d6dcef; --muted:#8b93ab;
@@ -108,7 +128,7 @@
 </div></nav>
 
 <header class="hero"><div class="wrap">
-  <span class="badge">one &lt;script&gt; · zero config · no build · ~10&nbsp;KB</span>
+  <span class="badge">one &lt;script&gt; · zero config · ~9&nbsp;KB min+gzip</span>
   <h1>A terminal walkthrough<br>is just <span class="tag">&lt;x-zsh&gt;</span></h1>
   <p class="sub">Write a terminal session in plain text. <code>x-zsh</code> renders an
     animated, Powerlevel10k-style zsh — typing, spinners, progress bars, the works —
@@ -161,11 +181,11 @@
     <code>&lt;x-zsh&gt;</code> element on load — there's nothing to initialize.</p>
 
   <h3>CDN (fastest)</h3>
-  <pre><span class="c">&lt;!-- unpkg --&gt;</span>
+  <pre><span class="c">&lt;!-- unpkg, latest (minified) --&gt;</span>
 &lt;script src="https://unpkg.com/x-zsh"&gt;&lt;/script&gt;
 
 <span class="c">&lt;!-- or jsDelivr, pinned to a version --&gt;</span>
-&lt;script src="https://cdn.jsdelivr.net/npm/x-zsh@0.1.0/x-zsh.js"&gt;&lt;/script&gt;</pre>
+&lt;script src="https://cdn.jsdelivr.net/npm/x-zsh@0.3/x-zsh.min.js"&gt;&lt;/script&gt;</pre>
 
   <h3>npm</h3>
   <pre><span class="k">npm</span> install x-zsh</pre>

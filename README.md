@@ -11,7 +11,7 @@ backend. Perfect for docs, READMEs-as-pages, landing pages, and install guides.
   <img src="media/demo.gif" alt="x-zsh rendering an animated terminal install walkthrough" width="760">
 </p>
 
-- 🪶 One `<script>`, zero config, no build, no dependencies (~10 KB)
+- 🪶 One `<script>`, zero config, no dependencies (~9 KB minified + gzipped)
 - 🛡️ Self-isolated in Shadow DOM — styles can't leak in or out
 - ⌨️ Human-feeling typing (jitter + a blink at the prompt before each command)
 - 📊 Authentic spinners and five real progress-bar styles (pip, wget, curl, cargo, tqdm)
@@ -28,11 +28,11 @@ backend. Perfect for docs, READMEs-as-pages, landing pages, and install guides.
 ### CDN
 
 ```html
-<!-- unpkg, latest -->
+<!-- unpkg, latest (serves the minified build) -->
 <script src="https://unpkg.com/x-zsh"></script>
 
-<!-- or jsDelivr, pinned -->
-<script src="https://cdn.jsdelivr.net/npm/x-zsh@0.1.0/x-zsh.js"></script>
+<!-- or jsDelivr, pinned to a version -->
+<script src="https://cdn.jsdelivr.net/npm/x-zsh@0.3/x-zsh.min.js"></script>
 ```
 
 ### npm

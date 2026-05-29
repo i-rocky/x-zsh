@@ -1,7 +1,17 @@
 # Contributing / Development
 
-`x-zsh` is intentionally tiny: **one dependency-free file** (`x-zsh.js`) plus a static
-docs page (`index.html`). There is no build step, no bundler, and no framework.
+`x-zsh` is intentionally tiny: **one dependency-free source file** (`x-zsh.js`) plus a
+static docs page (`index.html`). No framework, no bundler. The only build step is an
+optional minify that produces `x-zsh.min.js` for the CDNs — the source stays canonical
+and the docs page loads it directly.
+
+```sh
+npm install      # installs esbuild (the one devDependency)
+npm run build    # regenerates x-zsh.min.js from x-zsh.js
+```
+
+Run `npm run build` after editing `x-zsh.js` so the checked-in `x-zsh.min.js` stays in
+sync. (The publish workflow rebuilds it too, so released packages never ship a stale bundle.)
 
 ## Run it locally
 

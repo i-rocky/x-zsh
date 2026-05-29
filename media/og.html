@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>x-zsh OG card</title>
+<style>
+  *{box-sizing:border-box}
+  html,body{margin:0}
+  #og{
+    width:1200px;height:630px;display:flex;align-items:stretch;overflow:hidden;
+    background:radial-gradient(1200px 700px at 78% -10%, #16213a 0%, #0c0d14 60%);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",system-ui,sans-serif;color:#d6dcef;
+  }
+  .left{flex:0 0 460px;padding:64px 0 64px 64px;display:flex;flex-direction:column;justify-content:center;gap:22px}
+  .word{font-family:"SFMono-Regular",ui-monospace,"JetBrains Mono",Menlo,monospace;
+    font-size:62px;font-weight:700;letter-spacing:-.02em;line-height:1}
+  .word b{color:#9ece6a}
+  .word .br{color:#4b5277}
+  .tag{font-size:25px;line-height:1.35;color:#aab2cf;max-width:380px}
+  .tag em{color:#fff;font-style:normal}
+  .chips{display:flex;gap:10px;flex-wrap:wrap;margin-top:6px}
+  .chip{font-family:"SFMono-Regular",ui-monospace,monospace;font-size:16px;color:#cbd3f0;
+    background:#181b29;border:1px solid #2a2e44;border-radius:8px;padding:8px 13px}
+  .url{font-family:"SFMono-Regular",ui-monospace,monospace;font-size:15px;color:#6b7390;margin-top:8px}
+  .right{flex:1;display:flex;align-items:center;padding:46px 56px 46px 28px}
+  x-zsh{width:100%}
+</style>
+</head>
+<body>
+  <div id="og">
+    <div class="left">
+      <div class="word"><span class="br">&lt;</span><b>x-zsh</b><span class="br">&gt;</span></div>
+      <div class="tag">Animated terminal walkthroughs as an <em>HTML element</em>.</div>
+      <div class="chips">
+        <span class="chip">npm i x-zsh</span>
+        <span class="chip">zero config</span>
+        <span class="chip">~10 KB</span>
+      </div>
+      <div class="url">i-rocky.github.io/x-zsh</div>
+    </div>
+    <div class="right">
+      <x-zsh os="ubuntu" plugins="node" user="you" host="dev" height="420" speed="0" gap="0">
+        note: Write a session in plain text.
+        cmd: git clone https://github.com/acme/widget && cd widget
+        spinner[1s]: Receiving objects => Received 2,418 objects, done.
+        cmd: npm install
+        progress[1s]: Installing dependencies
+        success: added 219 packages
+        cmd: npm run dev
+        info: ➜  Local:   http://localhost:5173/
+      </x-zsh>
+    </div>
+  </div>
+  <script src="../x-zsh.js"></script>
+</body>
+</html>

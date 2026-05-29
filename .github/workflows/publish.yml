@@ -19,4 +19,6 @@ jobs:
           node-version: 24
           registry-url: https://registry.npmjs.org
       - run: npm install -g npm@latest   # trusted publishing needs npm >= 11.5.1
+      - run: npm install                 # devDeps (esbuild)
+      - run: npm run build               # regenerate x-zsh.min.js from source
       - run: npm publish --access public  # auth via OIDC — no token needed

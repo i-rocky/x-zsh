@@ -302,6 +302,7 @@
         dir: a('dir') || '~',
         branch: a('branch') || 'main',
         git: false,
+        repos: {},          // dir path -> branch; the git segment shows when cwd is inside one
         venv: null,
         os: (a('os') || 'ubuntu').toLowerCase(),
         plugins: (a('plugins') || '').split(',').map(function (s) { return s.trim(); })
@@ -703,26 +704,65 @@
     // ---- context tracking --------------------------------------------------
 
     track(cmd) {
-      var self = this;
+      var self = this, c = this.ctx;
       cmd.split(/&&|\|\||;/).forEach(function (part) {
-        var cd = part.match(/^\s*cd\s+(.+?)\s*$/);
-        if (cd) self.applyCd(cd[1].replace(/['"]/g, ''));
-      });
-      if (/\bgit\s+(init|clone)\b/.test(cmd)) {
-        this.ctx.git = true;
-        if (!this.ctx.branch) this.ctx.branch = 'main';
-      }
-      var co = cmd.match(/\bgit\s+(?:checkout\s+-b|switch\s+-c|checkout|switch)\s+([^\s]+)/);
-      if (co) { this.ctx.git = true; this.ctx.branch = co[1]; }
+        part = part.trim();
 
-      // python virtualenv — only show the segment once activated
-      var act = cmd.match(/(?:source|\.)\s+(\S+?)\/bin\/activate/);
-      if (act) this.ctx.venv = act[1].split('/').pop();
-      var conda = cmd.match(/\b(?:conda|mamba)\s+activate\s+(\S+)/);
-      if (conda) this.ctx.venv = conda[1];
-      var workon = cmd.match(/\bworkon\s+(\S+)/);
-      if (workon) this.ctx.venv = workon[1];
-      if (/\bdeactivate\b/.test(cmd)) this.ctx.venv = null;
+        var cd = part.match(/^cd\s+(.+?)\s*$/);
+        if (cd) { self.applyCd(cd[1].replace(/['"]/g, '')); return; }
+
+        // `git init` makes the *current* dir a repo (you're in it)
+        if (/^(?:sudo\s+)?git\s+init\b/.test(part)) { c.repos[c.dir] = c.branch || 'main'; return; }
+
+        // `git clone url [dir]` makes a *sub*dir a repo — cwd stays in the parent,
+        // so no branch shows until you cd into it (unless cloning into ".")
+        var clone = part.match(/\bgit\s+clone\b(.*)/);
+        if (clone) {
+          var toks = clone[1].trim().split(/\s+/).filter(function (t) { return t && t.charAt(0) !== '-'; });
+          var url = toks[0] || '', target = toks[1];
+          var path = target === '.' ? c.dir
+            : self.join(c.dir, target || url.replace(/\.git$/, '').replace(/\/+$/, '').split('/').pop());
+          if (path) c.repos[path] = 'main';
+          return;
+        }
+
+        // any in-repo git command implies the current dir is a repo
+        if (/\bgit\s+(checkout|switch|commit|push|pull|status|add|branch|merge|rebase|stash|fetch|tag|restore|reset|diff|log|remote|cherry-pick)\b/.test(part)) {
+          if (!self.repoFor(c.dir)) c.repos[c.dir] = 'main';
+          var co = part.match(/\bgit\s+(?:checkout\s+-b|switch\s+-c|checkout|switch)\s+(\S+)/);
+          if (co && co[1].charAt(0) !== '-') { var rp = self.repoFor(c.dir); if (rp) c.repos[rp] = co[1]; }
+        }
+
+        // python virtualenv — only shown once activated
+        var act = part.match(/(?:source|\.)\s+(\S+?)\/bin\/activate/);
+        if (act) c.venv = act[1].split('/').pop();
+        var conda = part.match(/\b(?:conda|mamba)\s+activate\s+(\S+)/);
+        if (conda) c.venv = conda[1];
+        var workon = part.match(/\bworkon\s+(\S+)/);
+        if (workon) c.venv = workon[1];
+        if (/\bdeactivate\b/.test(part)) c.venv = null;
+      });
+      this.recomputeGit();
+    }
+
+    join(base, seg) {
+      if (!seg) return base;
+      if (seg.charAt(0) === '/' || seg.indexOf('~/') === 0 || seg === '~') return seg;
+      return (base === '~' ? '~' : base.replace(/\/$/, '')) + '/' + seg;
+    }
+
+    repoFor(dir) {                 // longest registered repo path containing dir
+      var best = null, repos = this.ctx.repos;
+      for (var p in repos) {
+        if (dir === p || dir.indexOf(p + '/') === 0) { if (!best || p.length > best.length) best = p; }
+      }
+      return best;
+    }
+
+    recomputeGit() {               // git/branch are derived from cwd + the repo registry
+      var rp = this.repoFor(this.ctx.dir);
+      this.ctx.git = !!rp;
+      if (rp) this.ctx.branch = this.ctx.repos[rp];
     }
 
     applyCd(arg) {
@@ -740,14 +780,21 @@
     }
 
     applyPrompt(text) {
-      var c = this.ctx;
+      var c = this.ctx, gitTok = null;
       text.split(/\s+/).forEach(function (tok) {
         var kv = tok.split('=');
         if (kv.length !== 2) return;
         var k = kv[0], v = kv[1];
-        if (k === 'git') c.git = v !== 'false';
+        if (k === 'git') gitTok = v;
         else if (['user', 'host', 'dir', 'branch'].indexOf(k) >= 0) c[k] = v;
       });
+      if (gitTok !== null) {
+        if (gitTok !== 'false') c.repos[c.dir] = c.branch || 'main';
+        else { var rp = this.repoFor(c.dir); if (rp) delete c.repos[rp]; }
+      } else {
+        var r = this.repoFor(c.dir); if (r && c.branch) c.repos[r] = c.branch;
+      }
+      this.recomputeGit();
     }
 
     scroll() { this.screen.scrollTop = this.screen.scrollHeight; }
