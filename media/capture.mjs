@@ -14,7 +14,7 @@ const page = await browser.newPage({
   deviceScaleFactor: 2,
 });
 await page.goto(url, { waitUntil: 'load' });
-await page.waitForSelector('x-shell');
+await page.waitForSelector('x-zsh');
 // let the element mount + IntersectionObserver fire and the run begin
 await page.waitForTimeout(500);
 const cap = await page.$('#cap');

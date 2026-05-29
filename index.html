@@ -3,8 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>x-shell — animated terminal walkthroughs as an HTML element</title>
-<meta name="description" content="Drop in one script and write a terminal session in plain text. x-shell renders an animated, p10k-style zsh walkthrough, isolated in Shadow DOM. Zero config, no build, not an emulator.">
+<title>x-zsh — animated terminal walkthroughs as an HTML element</title>
+<meta name="description" content="Drop in one script and write a terminal session in plain text. x-zsh renders an animated, p10k-style zsh walkthrough, isolated in Shadow DOM. Zero config, no build, not an emulator.">
 <style>
   :root{
     --bg:#0c0d14; --panel:#12131c; --line:#222538; --fg:#d6dcef; --muted:#8b93ab;
@@ -96,31 +96,31 @@
 <body>
 
 <nav><div class="wrap">
-  <span class="brand">&lt;x-shell&gt;</span>
+  <span class="brand">&lt;x-zsh&gt;</span>
   <span class="links">
     <a href="#install">Install</a>
     <a href="#examples">Examples</a>
     <a href="#guide">Guide</a>
     <a href="#reference">Reference</a>
     <a href="#dev">Dev</a>
-    <a class="gh" href="https://github.com/i-rocky/x-shell">GitHub</a>
+    <a class="gh" href="https://github.com/i-rocky/x-zsh">GitHub</a>
   </span>
 </div></nav>
 
 <header class="hero"><div class="wrap">
   <span class="badge">one &lt;script&gt; · zero config · no build · ~10&nbsp;KB</span>
-  <h1>A terminal walkthrough<br>is just <span class="tag">&lt;x-shell&gt;</span></h1>
-  <p class="sub">Write a terminal session in plain text. <code>x-shell</code> renders an
+  <h1>A terminal walkthrough<br>is just <span class="tag">&lt;x-zsh&gt;</span></h1>
+  <p class="sub">Write a terminal session in plain text. <code>x-zsh</code> renders an
     animated, Powerlevel10k-style zsh — typing, spinners, progress bars, the works —
     fully isolated in its own Shadow DOM. It's a walkthrough player, not an emulator.</p>
   <div class="cta">
     <a class="btn primary" href="#install">Get started</a>
-    <a class="btn ghost" href="https://www.npmjs.com/package/x-shell">npm&nbsp;install&nbsp;x-shell</a>
-    <a class="btn ghost gh" href="https://github.com/i-rocky/x-shell">★ GitHub</a>
+    <a class="btn ghost" href="https://www.npmjs.com/package/x-zsh">npm&nbsp;install&nbsp;x-zsh</a>
+    <a class="btn ghost gh" href="https://github.com/i-rocky/x-zsh">★ GitHub</a>
   </div>
 
   <div style="text-align:left;margin-top:30px">
-    <x-shell os="ubuntu" plugins="node" user="you" host="dev" height="300" controls loop loop-delay="2200">
+    <x-zsh os="ubuntu" plugins="node" user="you" host="dev" height="300" controls loop loop-delay="2200">
       note: Spin up the project locally — copy the commands with the button on each line.
       cmd: git clone https://github.com/acme/widget.git
       Cloning into 'widget'...
@@ -131,14 +131,14 @@
       cmd: npm run dev
       info: ➜  Local:   http://localhost:5173/
       success: ✓ ready in 412 ms
-    </x-shell>
+    </x-zsh>
   </div>
 </div></header>
 
 <section id="why"><div class="wrap">
-  <h2>Why x-shell</h2>
+  <h2>Why x-zsh</h2>
   <p class="lead">Recording a terminal is fiddly and the output is a video you can't copy from.
-    x-shell is just markup — versionable, themeable, and the commands stay selectable.</p>
+    x-zsh is just markup — versionable, themeable, and the commands stay selectable.</p>
   <div class="grid">
     <div class="card"><span class="ic">✍️</span><h3>Plain-text authoring</h3>
       <p>Keyword verbs and bare lines. No timelines, no JSON, no recording session.</p></div>
@@ -158,30 +158,30 @@
 <section id="install"><div class="wrap">
   <h2>Install</h2>
   <p class="lead">Pick a CDN tag or install from npm. The script auto-registers the
-    <code>&lt;x-shell&gt;</code> element on load — there's nothing to initialize.</p>
+    <code>&lt;x-zsh&gt;</code> element on load — there's nothing to initialize.</p>
 
   <h3>CDN (fastest)</h3>
   <pre><span class="c">&lt;!-- unpkg --&gt;</span>
-&lt;script src="https://unpkg.com/x-shell"&gt;&lt;/script&gt;
+&lt;script src="https://unpkg.com/x-zsh"&gt;&lt;/script&gt;
 
 <span class="c">&lt;!-- or jsDelivr, pinned to a version --&gt;</span>
-&lt;script src="https://cdn.jsdelivr.net/npm/x-shell@0.1.0/x-shell.js"&gt;&lt;/script&gt;</pre>
+&lt;script src="https://cdn.jsdelivr.net/npm/x-zsh@0.1.0/x-zsh.js"&gt;&lt;/script&gt;</pre>
 
   <h3>npm</h3>
-  <pre><span class="k">npm</span> install x-shell</pre>
-  <pre><span class="c">// side-effect import registers &lt;x-shell&gt;</span>
-<span class="k">import</span> <span class="s">'x-shell'</span>;</pre>
+  <pre><span class="k">npm</span> install x-zsh</pre>
+  <pre><span class="c">// side-effect import registers &lt;x-zsh&gt;</span>
+<span class="k">import</span> <span class="s">'x-zsh'</span>;</pre>
 
   <h3>Then write a session</h3>
-  <pre>&lt;x-shell os="ubuntu" plugins="node"&gt;
+  <pre>&lt;x-zsh os="ubuntu" plugins="node"&gt;
   cmd: npm create vite@latest my-app
   success: ✔ Scaffolding project...
   cmd: cd my-app &amp;&amp; npm install
   progress[2s]: Installing
-&lt;/x-shell&gt;</pre>
+&lt;/x-zsh&gt;</pre>
   <div class="note"><b>Heads up:</b> a standards custom-element name must contain a hyphen, so
-    the tag is <code>&lt;x-shell&gt;</code> (not <code>&lt;shell&gt;</code>). Register a different
-    tag with <code>XShell.register('my-term')</code> if you like.</div>
+    the tag is <code>&lt;x-zsh&gt;</code> (not <code>&lt;shell&gt;</code>). Register a different
+    tag with <code>XZsh.register('my-term')</code> if you like.</div>
 </div></section>
 
 <section id="examples"><div class="wrap">
@@ -191,37 +191,37 @@
 
   <p class="lbl">Python · pip progress · light mode</p>
   <div class="demo">
-    <x-shell os="macos" mode="light" plugins="python" user="ana" host="mbp" height="240" bar="pip">
+    <x-zsh os="macos" mode="light" plugins="python" user="ana" host="mbp" height="240" bar="pip">
       cmd: python -m venv .venv && source .venv/bin/activate
       cmd: pip install torch transformers
       progress[2.6s]: Downloading torch (797 MB)
       progress[1.6s]: Downloading transformers (9.8 MB)
       success: Successfully installed torch-2.3.0 transformers-4.41.0
-    </x-shell>
-    <details class="src"><summary>source</summary><pre>&lt;x-shell os="macos" mode="light" plugins="python" bar="pip"&gt;
+    </x-zsh>
+    <details class="src"><summary>source</summary><pre>&lt;x-zsh os="macos" mode="light" plugins="python" bar="pip"&gt;
   cmd: python -m venv .venv &amp;&amp; source .venv/bin/activate
   cmd: pip install torch transformers
   progress[2.6s]: Downloading torch (797 MB)
   progress[1.6s]: Downloading transformers (9.8 MB)
   success: Successfully installed torch-2.3.0 transformers-4.41.0
-&lt;/x-shell&gt;</pre></details>
+&lt;/x-zsh&gt;</pre></details>
   </div>
 
   <p class="lbl">Docker · spinners · looping with controls</p>
   <div class="demo">
-    <x-shell os="arch" plugins="docker" user="kai" host="arch" height="240" speed="24" loop loop-delay="1800" controls>
+    <x-zsh os="arch" plugins="docker" user="kai" host="arch" height="240" speed="24" loop loop-delay="1800" controls>
       cmd: docker compose up -d
       spinner[1.6s]: Creating network => Network app_default created
       spinner[2s]: Pulling images => Pulled 3 images
       success: ✔ Container app-web-1  Started
       cmd: docker compose ps
       info: app-web-1   running   0.0.0.0:8080->80/tcp
-    </x-shell>
+    </x-zsh>
   </div>
 
   <p class="lbl">git workflow · error then recovery</p>
   <div class="demo">
-    <x-shell os="debian" plugins="node" user="dev" host="box" height="280">
+    <x-zsh os="debian" plugins="node" user="dev" host="box" height="280">
       cmd: git checkout -b feature/login
       info: Switched to a new branch 'feature/login'
       cmd: git push
@@ -230,12 +230,12 @@
       cmd: git push --set-upstream origin feature/login
       spinner[1.4s]: Pushing => done
       success: branch 'feature/login' set up to track 'origin/feature/login'.
-    </x-shell>
+    </x-zsh>
   </div>
 
   <p class="lbl">All five progress-bar styles</p>
   <div class="demo">
-    <x-shell os="ubuntu" user="dev" host="box" height="300" gap="500" controls>
+    <x-zsh os="ubuntu" user="dev" host="box" height="300" gap="500" controls>
       cmd: pip install package
       progress[1.8s pip]: Downloading (120 MB)
       cmd: wget https://example.com/image.iso
@@ -246,7 +246,7 @@
       progress[1.8s arrow]: Compiling crate
       cmd: tar xzf archive.tar.gz
       progress[1.8s block]: Extracting
-    </x-shell>
+    </x-zsh>
   </div>
 </div></section>
 
@@ -319,7 +319,7 @@
 
 <section id="reference"><div class="wrap">
   <h2>Attribute reference</h2>
-  <p class="lead">All attributes are optional. Set them on the <code>&lt;x-shell&gt;</code> tag.</p>
+  <p class="lead">All attributes are optional. Set them on the <code>&lt;x-zsh&gt;</code> tag.</p>
   <table class="tbl">
     <tr><th>Attribute</th><th>Default</th><th>What it does</th></tr>
     <tr><td><code>os</code></td><td><code>ubuntu</code></td><td>Prompt icon + color. One of <code>ubuntu, debian, macos, arch, fedora, alpine</code>.</td></tr>
@@ -346,8 +346,8 @@
     async render loop. Hack on it in minutes.</p>
 
   <h3>Run the docs locally</h3>
-  <pre><span class="k">git</span> clone https://github.com/i-rocky/x-shell
-<span class="k">cd</span> x-shell
+  <pre><span class="k">git</span> clone https://github.com/i-rocky/x-zsh
+<span class="k">cd</span> x-zsh
 <span class="c"># any static server works</span>
 <span class="k">python3</span> -m http.server 8000
 <span class="c"># open http://localhost:8000</span></pre>
@@ -362,23 +362,23 @@
 
   <h3>Theming</h3>
   <p>Override the CSS custom properties on the host. Light/dark ship in the box:</p>
-  <pre>x-shell::part(window){ border-radius: 6px; }
-x-shell{ --bg:#1e1e2e; --fg:#cdd6f4; --accent2:#89b4fa; }</pre>
-  <p>A named-theme registry hook exists for the future: <code>XShell.theme('name', {…})</code>.</p>
+  <pre>x-zsh::part(window){ border-radius: 6px; }
+x-zsh{ --bg:#1e1e2e; --fg:#cdd6f4; --accent2:#89b4fa; }</pre>
+  <p>A named-theme registry hook exists for the future: <code>XZsh.theme('name', {…})</code>.</p>
 
   <h3>Custom tag</h3>
-  <pre><span class="k">import</span> <span class="s">'x-shell'</span>;
+  <pre><span class="k">import</span> <span class="s">'x-zsh'</span>;
 <span class="c">// also expose it under your own hyphenated name</span>
-XShell.register(<span class="s">'acme-term'</span>);</pre>
+XZsh.register(<span class="s">'acme-term'</span>);</pre>
 </div></section>
 
 <footer><div class="wrap">
-  <span>MIT licensed · <code>x-shell</code></span>
-  <span><a href="https://github.com/i-rocky/x-shell">GitHub</a> ·
-    <a href="https://www.npmjs.com/package/x-shell">npm</a> ·
+  <span>MIT licensed · <code>x-zsh</code></span>
+  <span><a href="https://github.com/i-rocky/x-zsh">GitHub</a> ·
+    <a href="https://www.npmjs.com/package/x-zsh">npm</a> ·
     <a href="#install">Docs</a></span>
 </div></footer>
 
-<script src="x-shell.js"></script>
+<script src="x-zsh.js"></script>
 </body>
 </html>

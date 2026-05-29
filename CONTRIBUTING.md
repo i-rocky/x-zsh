@@ -1,24 +1,24 @@
 # Contributing / Development
 
-`x-shell` is intentionally tiny: **one dependency-free file** (`x-shell.js`) plus a static
+`x-zsh` is intentionally tiny: **one dependency-free file** (`x-zsh.js`) plus a static
 docs page (`index.html`). There is no build step, no bundler, and no framework.
 
 ## Run it locally
 
-Any static file server works — the page just loads `x-shell.js` next to it.
+Any static file server works — the page just loads `x-zsh.js` next to it.
 
 ```sh
-git clone https://github.com/i-rocky/x-shell
-cd x-shell
+git clone https://github.com/i-rocky/x-zsh
+cd x-zsh
 npm start            # python3 -m http.server 8000
 # open http://localhost:8000
 ```
 
-Edit `x-shell.js`, refresh the page, done.
+Edit `x-zsh.js`, refresh the page, done.
 
 ## Architecture
 
-`x-shell.js` is a single IIFE that defines one custom element. The flow:
+`x-zsh.js` is a single IIFE that defines one custom element. The flow:
 
 1. **Parse** (`dedent`, `classify`) — the tag's text content is dedented, then each line is
    classified into `{ verb, dur, style, text }`. A line matching a reserved verb word
@@ -50,7 +50,7 @@ Edit `x-shell.js`, refresh the page, done.
 | Progress bar styles | `BARS` (each returns a line of HTML at a given `pct`) |
 | Spinner frame sets | `SPINS` |
 | All styling | `Term.css` (a joined string applied inside the shadow root) |
-| Public API | `XShell.register(tag)`, `XShell.theme(name, vars)` |
+| Public API | `XZsh.register(tag)`, `XZsh.theme(name, vars)` |
 
 ## Adding things
 

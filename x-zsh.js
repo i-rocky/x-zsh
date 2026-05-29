@@ -1,9 +1,9 @@
-/* <x-shell> — drop-in animated terminal walkthroughs. Zero config.
+/* <x-zsh> — drop-in animated terminal walkthroughs. Zero config.
  * Write a session in plain text, get a p10k-style zsh render, animated,
  * self-isolated in Shadow DOM. Not an emulator — you can't type in it.
  *
  * A standards custom-element name must contain a hyphen, so the tag is
- * <x-shell>. Register a different alias with XShell.register('your-name').
+ * <x-zsh>. Register a different alias with XZsh.register('your-name').
  *
  * Grammar (hybrid keyword verbs, implicit output):
  *   cmd:  <command>                 user types a command
@@ -748,6 +748,6 @@
     if (!customElements.get(tag)) customElements.define(tag, Term);
   };
 
-  Term.register('x-shell');
-  window.XShell = Term;
+  Term.register('x-zsh');
+  window.XZsh = Term;
 })();

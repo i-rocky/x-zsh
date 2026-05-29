@@ -1,14 +1,14 @@
-# &lt;x-shell&gt;
+# &lt;x-zsh&gt;
 
 **Drop-in animated terminal walkthroughs as an HTML element.** Write a terminal session
-in plain text and `x-shell` renders an animated, Powerlevel10k-style zsh — typing,
+in plain text and `x-zsh` renders an animated, Powerlevel10k-style zsh — typing,
 spinners, progress bars — fully isolated in its own Shadow DOM.
 
 It's a *walkthrough player*, not an emulator: you can't type into it, and there's no
 backend. Perfect for docs, READMEs-as-pages, landing pages, and install guides.
 
 <p align="center">
-  <img src="media/demo.gif" alt="x-shell rendering an animated terminal install walkthrough" width="760">
+  <img src="media/demo.gif" alt="x-zsh rendering an animated terminal install walkthrough" width="760">
 </p>
 
 - 🪶 One `<script>`, zero config, no build, no dependencies (~10 KB)
@@ -19,7 +19,7 @@ backend. Perfect for docs, READMEs-as-pages, landing pages, and install guides.
 - 🎨 Themeable via CSS custom properties; light & dark built in
 - ♿ Respects `prefers-reduced-motion`
 
-> **Live docs & examples:** https://i-rocky.github.io/x-shell/
+> **Live docs & examples:** https://i-rocky.github.io/x-zsh/
 
 ---
 
@@ -29,33 +29,33 @@ backend. Perfect for docs, READMEs-as-pages, landing pages, and install guides.
 
 ```html
 <!-- unpkg, latest -->
-<script src="https://unpkg.com/x-shell"></script>
+<script src="https://unpkg.com/x-zsh"></script>
 
 <!-- or jsDelivr, pinned -->
-<script src="https://cdn.jsdelivr.net/npm/x-shell@0.1.0/x-shell.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/x-zsh@0.1.0/x-zsh.js"></script>
 ```
 
 ### npm
 
 ```sh
-npm install x-shell
+npm install x-zsh
 ```
 
 ```js
-import 'x-shell'; // side-effect import registers the <x-shell> element
+import 'x-zsh'; // side-effect import registers the <x-zsh> element
 ```
 
-The script auto-registers `<x-shell>` on load — there is nothing to initialize.
+The script auto-registers `<x-zsh>` on load — there is nothing to initialize.
 
-> A standards custom-element name must contain a hyphen, so the tag is `<x-shell>`
-> (not `<shell>`). Register a different tag with `XShell.register('my-term')`.
+> A standards custom-element name must contain a hyphen, so the tag is `<x-zsh>`
+> (not `<shell>`). Register a different tag with `XZsh.register('my-term')`.
 
 ---
 
 ## Quick start
 
 ```html
-<x-shell os="ubuntu" plugins="node" height="260" controls>
+<x-zsh os="ubuntu" plugins="node" height="260" controls>
   note: Spin up the project locally.
   cmd: git clone https://github.com/acme/widget.git
   Cloning into 'widget'...
@@ -65,7 +65,7 @@ The script auto-registers `<x-shell>` on load — there is nothing to initialize
   success: added 219 packages in 2s
   cmd: npm run dev
   info: ➜  Local:   http://localhost:5173/
-</x-shell>
+</x-zsh>
 ```
 
 ---
@@ -128,7 +128,7 @@ The bracket on timed verbs holds a **duration** and/or a **style**, in any order
 
 ## Attributes
 
-All optional, set on the `<x-shell>` tag.
+All optional, set on the `<x-zsh>` tag.
 
 | Attribute | Default | What it does |
 |---|---|---|
@@ -155,16 +155,16 @@ It plays when scrolled into view.
 Every color is a CSS custom property on the host:
 
 ```css
-x-shell {
+x-zsh {
   --bg: #1e1e2e;
   --fg: #cdd6f4;
   --accent2: #89b4fa; /* prompt / spinner accent */
 }
-x-shell::part(window) { border-radius: 6px; }
+x-zsh::part(window) { border-radius: 6px; }
 ```
 
 `mode="light"` ships a light palette. A named-theme registry hook exists for the future:
-`XShell.theme('name', { … })`.
+`XZsh.theme('name', { … })`.
 
 ---
 
@@ -178,11 +178,11 @@ Box-drawing/powerline separators are drawn with CSS, so no special fonts are req
 ## Development
 
 See [CONTRIBUTING.md](CONTRIBUTING.md). In short: it's one dependency-free file
-(`x-shell.js`) and a static docs page (`index.html`).
+(`x-zsh.js`) and a static docs page (`index.html`).
 
 ```sh
-git clone https://github.com/i-rocky/x-shell
-cd x-shell
+git clone https://github.com/i-rocky/x-zsh
+cd x-zsh
 npm start          # serves the docs at http://localhost:8000
 ```
 
