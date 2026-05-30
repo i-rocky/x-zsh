@@ -22,8 +22,9 @@
  *   # …                             source comment, never rendered
  *
  * Attributes: os, mode=dark|light, theme (named palette), plugins, user, host,
- *   dir, branch, title, speed (ms/char), gap (ms the prompt blinks before typing),
- *   bar (default progress style), height, rows, loop, loop-delay, controls.
+ *   dir, branch, title, prompt-char (default ❯), speed (ms/char), gap (ms the prompt
+ *   blinks before typing), bar (default progress style), height, rows, loop,
+ *   loop-delay, controls.
  * Built-in themes: tokyonight, dracula, nord, catppuccin, gruvbox, solarized,
  *   onedark, rosepine. Register more with XZsh.theme('name', { bg, fg, accent, … }).
  *
@@ -310,6 +311,7 @@
       this.speed = dur(this.getAttribute('speed')) || 34;   // ms per char (avg)
       this.gap = this.hasAttribute('gap') ? dur(this.getAttribute('gap')) : 900;
       this.barStyle = this.getAttribute('bar') || 'block';
+      this.promptChar = this.getAttribute('prompt-char') || '❯';
       this.heightAttr = this.getAttribute('height');
       this.rowsAttr = this.getAttribute('rows');
       this.loopOn = this.hasAttribute('loop');
@@ -584,7 +586,7 @@
       var block = document.createElement('div');
       block.className = 'block';
       block.innerHTML = this.promptBar() +
-        '<div class="pline"><span class="pchar">❯</span>' +
+        '<div class="pline"><span class="pchar">' + esc(this.promptChar) + '</span>' +
         '<span class="typed"></span><span class="cursor"></span></div>';
       this.screen.appendChild(block);
       this.scroll();
@@ -883,7 +885,7 @@
     '.title{flex:1;text-align:center;color:var(--muted);font-size:12px;',
     'margin-right:36px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}',
     '.screen{padding:14px 16px 18px;max-height:520px;overflow:auto;color:var(--fg);',
-    'box-sizing:border-box;white-space:pre-wrap;word-break:break-word;}',
+    'box-sizing:border-box;white-space:pre-wrap;word-break:break-all;}',
     '.block{margin:.15em 0 .1em;}',
     '.pbar{display:flex;align-items:stretch;line-height:1.7;width:max-content;max-width:100%;',
     'font-size:12.5px;border-radius:3px;overflow:hidden;}',
@@ -894,7 +896,7 @@
     '.sep{width:.62em;align-self:stretch;background:var(--next);position:relative;flex:0 0 auto;}',
     '.sep::before{content:"";position:absolute;inset:0;background:var(--prev);',
     'clip-path:polygon(0 0,0 100%,100% 50%);}',
-    '.pline{display:flex;align-items:baseline;flex-wrap:wrap;position:relative;padding-right:34px;}',
+    '.pline{position:relative;}',
     '.pchar{color:var(--accent);font-weight:700;margin-right:.55em;}',
     '.typed{white-space:pre-wrap;}',
     '.copy-all{position:absolute;right:9px;top:50%;transform:translateY(-50%);',

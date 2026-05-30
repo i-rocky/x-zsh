@@ -15,8 +15,10 @@ const page = await browser.newPage({
 });
 await page.goto(url, { waitUntil: 'load' });
 await page.waitForSelector('x-zsh');
-// let the element mount + IntersectionObserver fire and the run begin
-await page.waitForTimeout(500);
+// pre-warm: let one loop play so the lazy CDN logos are fetched + cached,
+// then restart cleanly so frame 0 already shows the icons
+await page.waitForTimeout(3500);
+await page.evaluate(() => document.querySelector('x-zsh').replay());
 const cap = await page.$('#cap');
 
 for (let i = 0; i < frames; i++) {

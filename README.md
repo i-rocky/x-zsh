@@ -140,6 +140,7 @@ All optional, set on the `<x-zsh>` tag.
 | `plugins` | — | Comma list of prompt segments, each with an optional `@version` (e.g. `node@22,go@1.23,k8s@staging`). 85+ built-ins span languages, runtimes, frameworks, package managers, databases, and cloud/devops (`node, python, go, rust, ruby, php, java, react, vue, postgres, redis, docker, k8s, aws, terraform, …`). Register your own with `XZsh.plugin()`. (`python` shows only after a venv is activated, unless you pass an explicit `python@3.12`.) |
 | `user` `host` `dir` `branch` | `you localhost ~ main` | Initial prompt context. |
 | `title` | `user@host: dir` | Window title-bar text. |
+| `prompt-char` | `❯` | The prompt symbol before each command — e.g. `$`, `%`, `#`, `➜`, `λ`. |
 | `height` | — | Fixed screen height (px number or CSS length). Scrolls internally; auto-scrolls. |
 | `rows` | — | Fixed height in text rows (overrides `height`). |
 | `speed` | `34` | Average ms per typed character. |
