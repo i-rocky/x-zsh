@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>x-zsh — animated terminal walkthroughs as an HTML element</title>
 <meta name="description" content="Drop in one script and write a terminal session in plain text. x-zsh renders an animated, p10k-style zsh walkthrough, isolated in Shadow DOM. Zero config, no build, not an emulator.">
+<link rel="icon" href="media/favicon.svg" type="image/svg+xml">
 
 <!-- Open Graph (Facebook, LinkedIn, Discord, …) -->
 <meta property="og:type" content="website">
@@ -34,6 +35,7 @@
     --sans:-apple-system,BlinkMacSystemFont,"Segoe UI",system-ui,sans-serif;
   }
   *{box-sizing:border-box}
+  x-zsh:not(:defined){visibility:hidden}   /* avoid flashing the raw markup before upgrade */
   html{scroll-behavior:smooth;scroll-padding-top:72px}
   body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.65 var(--sans);
     -webkit-font-smoothing:antialiased;}
@@ -128,7 +130,7 @@
 </div></nav>
 
 <header class="hero"><div class="wrap">
-  <span class="badge">one &lt;script&gt; · zero config · ~9&nbsp;KB min+gzip</span>
+  <span class="badge">one &lt;script&gt; · zero config · ~11&nbsp;KB min+gzip</span>
   <h1>A terminal walkthrough<br>is just <span class="tag">&lt;x-zsh&gt;</span></h1>
   <p class="sub">Write a terminal session in plain text. <code>x-zsh</code> renders an
     animated, Powerlevel10k-style zsh — typing, spinners, progress bars, the works —
@@ -185,7 +187,7 @@
 &lt;script src="https://unpkg.com/x-zsh"&gt;&lt;/script&gt;
 
 <span class="c">&lt;!-- or jsDelivr, pinned to a version --&gt;</span>
-&lt;script src="https://cdn.jsdelivr.net/npm/x-zsh@0.3/x-zsh.min.js"&gt;&lt;/script&gt;</pre>
+&lt;script src="https://cdn.jsdelivr.net/npm/x-zsh@0.6/x-zsh.min.js"&gt;&lt;/script&gt;</pre>
 
   <h3>npm</h3>
   <pre><span class="k">npm</span> install x-zsh</pre>
@@ -305,6 +307,27 @@
       info: coverage 91%
     </x-zsh>
   </div>
+
+  <p class="lbl">Right-side tail — <code>clock</code> + last-command status</p>
+  <div class="demo">
+    <x-zsh os="ubuntu" plugins="node" clock user="dev" host="box" height="200">
+      cmd: npm test
+      error: 1 test failed
+      cmd: npm run build
+      success: built in 2.1s
+      cmd: npm publish
+    </x-zsh>
+  </div>
+
+  <p class="lbl">Compact — icons only (<code>compact</code>)</p>
+  <div class="demo">
+    <x-zsh os="arch" plugins="node,go,docker,rust,k8s" compact user="dev" host="box" height="160">
+      cmd: docker compose up -d
+      success: ✔ Started 3 containers
+      cmd: kubectl get pods
+      info: web-1   Running
+    </x-zsh>
+  </div>
 </div></section>
 
 <section id="guide"><div class="wrap">
@@ -388,6 +411,8 @@
     <tr><td><code>user</code> <code>host</code> <code>dir</code> <code>branch</code></td><td><code>you localhost ~ main</code></td><td>Initial prompt context.</td></tr>
     <tr><td><code>title</code></td><td><code>user@host: dir</code></td><td>Window title-bar text.</td></tr>
     <tr><td><code>prompt-char</code></td><td><code>❯</code></td><td>The prompt symbol before each command — e.g. <code>$</code>, <code>%</code>, <code>#</code>, <code>➜</code>, <code>λ</code>.</td></tr>
+    <tr><td><code>compact</code></td><td>off</td><td>Icons-only prompt — hides the OS name and plugin versions (keeps dir/branch).</td></tr>
+    <tr><td><code>clock</code></td><td>off</td><td>Ticking time in the right prompt (tail). A red <code>✘ code</code> status also appears there after a command whose output had an <code>error:</code>.</td></tr>
     <tr><td><code>height</code></td><td>—</td><td>Fixed screen height (bare number = px, or any CSS length). Scrolls internally, auto-scrolls to the latest line.</td></tr>
     <tr><td><code>rows</code></td><td>—</td><td>Fixed height in text rows (overrides <code>height</code>).</td></tr>
     <tr><td><code>speed</code></td><td><code>34</code></td><td>Average ms per typed character.</td></tr>
@@ -435,7 +460,7 @@ x-zsh{ --bg:#1e1e2e; --fg:#cdd6f4; --accent2:#89b4fa; }</pre>
   <h3>Icons load on demand</h3>
   <p>Built-in logos are real brand icons <b>vendored into the package</b> (no runtime
     dependency on a third-party repo) and loaded lazily, tinted to the segment color via CSS
-    <code>mask</code> — so the script stays ~10&nbsp;KB and a logo is fetched only when used.
+    <code>mask</code> — so the script stays ~11&nbsp;KB and a logo is fetched only when used.
     The base resolves next to wherever you load <code>x-zsh</code>; override with
     <code>XZsh.iconBase</code>. Logos: <a href="https://github.com/simple-icons/simple-icons">Simple
     Icons</a> (CC0) + a couple from <a href="https://github.com/devicons/devicon">devicon</a> (MIT).</p>

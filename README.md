@@ -1,5 +1,10 @@
 # &lt;x-zsh&gt;
 
+[![npm version](https://img.shields.io/npm/v/x-zsh?logo=npm&color=cb3837)](https://www.npmjs.com/package/x-zsh)
+[![minzipped size](https://img.shields.io/bundlephobia/minzip/x-zsh?color=8a2be2)](https://bundlephobia.com/package/x-zsh)
+[![license: MIT](https://img.shields.io/npm/l/x-zsh?color=blue)](LICENSE)
+[![publish](https://img.shields.io/badge/published%20via-GitHub%20Actions%20%2B%20provenance-2ea44f?logo=github)](https://github.com/i-rocky/x-zsh/actions)
+
 **Drop-in animated terminal walkthroughs as an HTML element.** Write a terminal session
 in plain text and `x-zsh` renders an animated, Powerlevel10k-style zsh — typing,
 spinners, progress bars — fully isolated in its own Shadow DOM.
@@ -11,7 +16,7 @@ backend. Perfect for docs, READMEs-as-pages, landing pages, and install guides.
   <img src="media/demo.gif" alt="x-zsh rendering an animated terminal install walkthrough" width="760">
 </p>
 
-- 🪶 One `<script>`, zero config, no dependencies (~9 KB minified + gzipped)
+- 🪶 One `<script>`, zero config, no dependencies (~11 KB minified + gzipped)
 - 🛡️ Self-isolated in Shadow DOM — styles can't leak in or out
 - ⌨️ Human-feeling typing (jitter + a blink at the prompt before each command)
 - 📊 Authentic spinners and five real progress-bar styles (pip, wget, curl, cargo, tqdm)
@@ -32,7 +37,7 @@ backend. Perfect for docs, READMEs-as-pages, landing pages, and install guides.
 <script src="https://unpkg.com/x-zsh"></script>
 
 <!-- or jsDelivr, pinned to a version -->
-<script src="https://cdn.jsdelivr.net/npm/x-zsh@0.3/x-zsh.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/x-zsh@0.6/x-zsh.min.js"></script>
 ```
 
 ### npm
@@ -75,7 +80,11 @@ The script auto-registers `<x-zsh>` on load — there is nothing to initialize.
 The content between the tags is a tiny line-based language. **A bare line is stdout** of
 the command above it; you only reach for a verb when a line isn't plain output. Only the
 reserved words below (lowercase, followed by `:`) are verbs — any other `word:` renders as
-ordinary output, so there's nothing to escape. Indentation is stripped.
+ordinary output (no need to escape a stray `:`). Indentation is stripped.
+
+> Because the content lives in your HTML, literal `<`, `>`, and `&` must be HTML-escaped as
+> `&lt;`, `&gt;`, `&amp;` (e.g. `cmd: grep "&lt;div&gt;"`) — otherwise the browser's parser
+> eats them before x-zsh sees the text.
 
 ### Input
 
@@ -141,6 +150,8 @@ All optional, set on the `<x-zsh>` tag.
 | `user` `host` `dir` `branch` | `you localhost ~ main` | Initial prompt context. |
 | `title` | `user@host: dir` | Window title-bar text. |
 | `prompt-char` | `❯` | The prompt symbol before each command — e.g. `$`, `%`, `#`, `➜`, `λ`. |
+| `compact` | off | Icons-only prompt — hides the OS name and plugin versions (keeps dir/branch). |
+| `clock` | off | Show a ticking time in the right prompt (tail). |
 | `height` | — | Fixed screen height (px number or CSS length). Scrolls internally; auto-scrolls. |
 | `rows` | — | Fixed height in text rows (overrides `height`). |
 | `speed` | `34` | Average ms per typed character. |
@@ -150,7 +161,27 @@ All optional, set on the `<x-zsh>` tag.
 | `loop` | off | Replay forever. |
 | `loop-delay` | `1400` | ms between loops. |
 
-It plays when scrolled into view.
+The **right prompt** (tail) — like p10k's `RPROMPT` — shows the ticking `clock` and, after a
+command whose output included an `error:`, a red `✘ <code>` status segment.
+
+It plays when scrolled into view, pauses while scrolled out of view, and resumes when it
+comes back. It also respects `prefers-reduced-motion` (renders instantly, no animation).
+
+## JavaScript API
+
+Each element exposes playback methods, and `XZsh` has a few statics:
+
+```js
+const term = document.querySelector('x-zsh');
+term.play(); term.pause(); term.replay();
+term.stepForward(); term.stepBack();
+
+XZsh.theme('name', { … });          // register a theme
+XZsh.plugin('name', { … });         // register a plugin segment
+XZsh.os('name', { … });             // register an OS
+XZsh.register('my-term');           // also define under another hyphenated tag
+XZsh.iconBase = '/my/icons/';       // serve the vendored logos from elsewhere
+```
 
 ---
 
@@ -205,7 +236,7 @@ Built-in OS/plugin logos are **real brand icons, vendored into this package** un
 [`icons/`](icons/) — so there's no runtime dependency on a third-party repo that could
 change or disappear. They're loaded **lazily** and tinted to the segment color via CSS
 `mask`; a logo is fetched only when its plugin/OS actually appears, so the script itself
-stays ~10 KB. The base resolves next to wherever you load `x-zsh` (npm, a CDN, or your own
+stays ~11 KB. The base resolves next to wherever you load `x-zsh` (npm, a CDN, or your own
 host), so the same origin serves the icons; override with `XZsh.iconBase = '/my/icons/'`.
 Offline, segments still show their text/version, just without the glyph.
 

@@ -22,9 +22,10 @@
  *   # …                             source comment, never rendered
  *
  * Attributes: os, mode=dark|light, theme (named palette), plugins, user, host,
- *   dir, branch, title, prompt-char (default ❯), speed (ms/char), gap (ms the prompt
- *   blinks before typing), bar (default progress style), height, rows, loop,
- *   loop-delay, controls.
+ *   dir, branch, title, prompt-char (default ❯), compact (icons only), clock (right-
+ *   side time), speed (ms/char), gap (ms the prompt blinks before typing), bar (default
+ *   progress style), height, rows, loop, loop-delay, controls.
+ * The right prompt also shows ✘ <code> after a command whose output had an `error:`.
  * Built-in themes: tokyonight, dracula, nord, catppuccin, gruvbox, solarized,
  *   onedark, rosepine. Register more with XZsh.theme('name', { bg, fg, accent, … }).
  *
@@ -43,6 +44,14 @@
  */
 (function () {
   'use strict';
+
+  // hide un-upgraded <x-zsh> so the raw markup never flashes (best when this
+  // script is in <head>; harmless otherwise, and covers dynamically-added ones)
+  try {
+    var _fouc = document.createElement('style');
+    _fouc.textContent = 'x-zsh:not(:defined){visibility:hidden}';
+    (document.head || document.documentElement).appendChild(_fouc);
+  } catch (e) { /* no document (SSR) */ }
 
   var RESERVED = ['cmd', 'root', 'type', 'key', 'warning', 'error', 'success',
     'info', 'note', 'delay', 'spinner', 'progress', 'clear', 'prompt'];
@@ -193,7 +202,15 @@
     return null;
   }
   function maskIcon(url) {
-    return '<i class="ic" style="-webkit-mask-image:url(' + url + ');mask-image:url(' + url + ')"></i>';
+    var u = "url('" + String(url).replace(/['")]/g, encodeURIComponent) + "')";
+    return '<i class="ic" aria-hidden="true" style="-webkit-mask-image:' + u + ';mask-image:' + u + '"></i>';
+  }
+  // shorten a long path the way a real prompt does: ~/a/b/c/d -> ~/…/c/d
+  function shortDir(d) {
+    if (d.length <= 26) return d;
+    var parts = d.split('/');
+    if (parts.length <= 3) return d;
+    return parts[0] + '/…/' + parts.slice(-2).join('/');
   }
 
   var COPY_SVG = '<svg viewBox="0 0 24 24" width="12" height="12" fill="none" ' +
@@ -300,7 +317,7 @@
 
   class Term extends HTMLElement {
     connectedCallback() {
-      if (this._mounted) return;
+      if (this._mounted) { this.observe(); return; }   // re-observe if moved back into the DOM
       this._mounted = true;
       var raw = this.textContent || '';
       this.items = dedent(raw).map(classify).filter(Boolean);
@@ -312,6 +329,8 @@
       this.gap = this.hasAttribute('gap') ? dur(this.getAttribute('gap')) : 900;
       this.barStyle = this.getAttribute('bar') || 'block';
       this.promptChar = this.getAttribute('prompt-char') || '❯';
+      this.compact = this.hasAttribute('compact');     // icons only, no OS name / versions
+      this.clockOn = this.hasAttribute('clock');       // right-side ticking time
       this.heightAttr = this.getAttribute('height');
       this.rowsAttr = this.getAttribute('rows');
       this.loopOn = this.hasAttribute('loop');
@@ -339,6 +358,7 @@
         git: false,
         repos: {},          // dir path -> branch; the git segment shows when cwd is inside one
         venv: null,
+        status: 0,          // exit code of the last command (shown in the right prompt)
         os: (a('os') || 'ubuntu').toLowerCase(),
         plugins: (a('plugins') || '').split(',').map(function (s) { return s.trim(); })
           .filter(Boolean).map(function (tok) {
@@ -369,18 +389,21 @@
 
       sh.innerHTML =
         '<style>' + Term.css + '</style>' +
-        '<div class="win' + (light ? ' light' : '') + '" part="window">' +
-          '<div class="bar"><span class="dot r"></span><span class="dot y"></span>' +
-            '<span class="dot g"></span><span class="title">' + esc(title) + '</span>' +
-            '<button class="copy-all" title="Copy all commands">' + COPY_SVG + '</button></div>' +
+        '<div class="win' + (light ? ' light' : '') + '" part="window" role="group" ' +
+            'aria-roledescription="terminal" aria-label="' + esc(title) + '">' +
+          '<div class="bar"><span class="dot r" aria-hidden="true"></span>' +
+            '<span class="dot y" aria-hidden="true"></span><span class="dot g" aria-hidden="true"></span>' +
+            '<span class="title">' + esc(title) + '</span>' +
+            '<button class="copy-all" type="button" title="Copy all commands" ' +
+              'aria-label="Copy all commands">' + COPY_SVG + '</button></div>' +
           '<div class="screen" part="screen"></div>' +
           (this.controlsOn ?
             '<div class="ctl" part="controls">' +
-              '<button class="c-prev" title="Step back">⏮</button>' +
-              '<button class="c-play" title="Play">▶</button>' +
-              '<button class="c-next" title="Step forward">⏭</button>' +
-              '<button class="c-replay" title="Replay">↻</button>' +
-              '<span class="c-status"></span>' +
+              '<button class="c-prev" type="button" title="Step back" aria-label="Step back">⏮</button>' +
+              '<button class="c-play" type="button" title="Play" aria-label="Play">▶</button>' +
+              '<button class="c-next" type="button" title="Step forward" aria-label="Step forward">⏭</button>' +
+              '<button class="c-replay" type="button" title="Replay" aria-label="Replay">↻</button>' +
+              '<span class="c-status" aria-hidden="true"></span>' +
             '</div>' : '') +
         '</div>';
       this.screen = sh.querySelector('.screen');
@@ -423,13 +446,28 @@
 
     observe() {
       var self = this;
+      if (this._io) this._io.disconnect();
       if (!('IntersectionObserver' in window)) { this.play(); return; }
-      var io = new IntersectionObserver(function (ents) {
+      this._io = new IntersectionObserver(function (ents) {
         ents.forEach(function (e) {
-          if (e.isIntersecting) { io.disconnect(); self.play(); }
+          if (e.isIntersecting) {
+            if (!self._started) { self._started = true; self.play(); }
+            else if (self._autoPaused) { self._autoPaused = false; self.play(); }
+          } else if (self.playing) {           // pause animation while scrolled out of view
+            self._autoPaused = true; self.pause();
+          }
         });
-      }, { threshold: 0.25 });
-      io.observe(this);
+      }, { threshold: 0.2 });
+      this._io.observe(this);
+    }
+
+    disconnectedCallback() {
+      if (this._io) { this._io.disconnect(); this._io = null; }
+      clearTimeout(this._loopTimer);
+      clearInterval(this._clockTimer); this._clockTimer = null;
+      this.playing = false;
+      this._run++;                 // invalidate any in-flight chain
+      if (this._kill) this._kill();
     }
 
     // ---- transport ---------------------------------------------------------
@@ -527,7 +565,9 @@
     updateControls() {
       if (!this.controlsOn) return;
       this.$play.textContent = this.playing ? '⏸' : '▶';
-      this.$play.title = this.playing ? 'Pause' : (this.state === 'done' ? 'Replay' : 'Play');
+      var pl = this.playing ? 'Pause' : (this.state === 'done' ? 'Replay' : 'Play');
+      this.$play.title = pl;
+      this.$play.setAttribute('aria-label', pl);
       this.$prev.disabled = this.idx <= 0;
       this.$next.disabled = this.idx >= this.items.length;
       this.$status.textContent = Math.min(this.idx, this.items.length) + ' / ' + this.items.length;
@@ -555,8 +595,9 @@
         return url ? maskIcon(url) : (fallback ? fallback + ' ' : '');
       }
 
-      segs.push({ html: lead(iconUrl(os, c.os), os.icon) + esc(os.name), bg: os.bg, fg: os.fg });
-      segs.push({ html: esc(c.dir), bg: 'var(--dir,#2a6df4)', fg: '#fff' });
+      var compact = this.compact;
+      segs.push({ html: lead(iconUrl(os, c.os), os.icon) + (compact ? '' : esc(os.name)), bg: os.bg, fg: os.fg });
+      segs.push({ html: esc(shortDir(c.dir)), bg: 'var(--dir,#2a6df4)', fg: '#fff' });
       if (c.git) segs.push({ html: maskIcon(Term.iconBase + 'git.svg') + esc(c.branch), bg: 'var(--git,#3fb950)', fg: '#04210d' });
 
       c.plugins.forEach(function (p) {
@@ -565,9 +606,23 @@
         if (p.name === 'python' && p.txt == null && !c.venv) return;  // venv-gated
         var txt = (p.name === 'python' && p.txt == null) ? c.venv
           : (p.txt != null ? p.txt : d.txt);         // name@version overrides the default
-        segs.push({ html: lead(iconUrl(d, p.name), d.icon) + (txt ? esc(txt) : ''), bg: d.bg, fg: d.fg });
+        segs.push({ html: lead(iconUrl(d, p.name), d.icon) + (compact || !txt ? '' : esc(txt)), bg: d.bg, fg: d.fg });
       });
       return segs;
+    }
+
+    // right prompt (tail): last-command status + ticking clock
+    rightSegments() {
+      var c = this.ctx, segs = [];
+      if (c.status) segs.push({ html: '✘ ' + c.status, bg: 'var(--err,#f7768e)', fg: '#fff' });
+      if (this.clockOn) segs.push({ html: '<span class="clock">' + this.timeStr() + '</span>', bg: 'var(--rbg,#2a2c3f)', fg: 'var(--muted,#9aa0b4)' });
+      return segs;
+    }
+
+    timeStr() {
+      var d = new Date();
+      function p(n) { return (n < 10 ? '0' : '') + n; }
+      return p(d.getHours()) + ':' + p(d.getMinutes()) + ':' + p(d.getSeconds());
     }
 
     promptBar() {
@@ -579,7 +634,15 @@
         var next = segs[i + 1] ? segs[i + 1].bg : 'transparent';
         out += '<span class="sep" style="--prev:' + s.bg + ';--next:' + next + '"></span>';
       }
-      return '<div class="pbar">' + out + '</div>';
+      var rsegs = this.rightSegments(), rout = '';
+      for (var j = 0; j < rsegs.length; j++) {           // right-facing powerline
+        var r = rsegs[j], prev = j > 0 ? rsegs[j - 1].bg : 'transparent';
+        rout += '<span class="sep rsep" style="--prev:' + prev + ';--next:' + r.bg + '"></span>';
+        rout += '<span class="seg" style="background:' + r.bg + ';color:' + r.fg + '">' +
+          r.html + '</span>';
+      }
+      return '<div class="pbar"><div class="lpbar">' + out + '</div>' +
+        (rout ? '<div class="rpbar">' + rout + '</div>' : '') + '</div>';
     }
 
     promptBlock() {
@@ -589,6 +652,15 @@
         '<div class="pline"><span class="pchar">' + esc(this.promptChar) + '</span>' +
         '<span class="typed"></span><span class="cursor"></span></div>';
       this.screen.appendChild(block);
+      if (this.clockOn) {                  // only the newest prompt's clock keeps ticking
+        this._clockEl = block.querySelector('.clock');
+        if (!this._clockTimer) {
+          var self = this;
+          this._clockTimer = setInterval(function () {
+            if (self._clockEl) self._clockEl.textContent = self.timeStr();
+          }, 1000);
+        }
+      }
       this.scroll();
       return block.querySelector('.typed');
     }
@@ -598,6 +670,7 @@
       btn.className = 'copy';
       btn.type = 'button';
       btn.title = 'Copy command';
+      btn.setAttribute('aria-label', 'Copy command');
       btn.innerHTML = COPY_SVG;
       btn.onmousedown = function (e) { e.preventDefault(); };
       btn.onclick = function () {
@@ -748,6 +821,7 @@
 
     track(cmd) {
       var self = this, c = this.ctx;
+      c.status = 0;            // a fresh command starts clean; a later error: marks it failed
       cmd.split(/&&|\|\||;/).forEach(function (part) {
         part = part.trim();
 
@@ -854,7 +928,7 @@
         case 'key': this.keycap(it.text); return this.wait(stream);
         case 'out': this.line(it.text, 'stdout'); return this.wait(stream);
         case 'warning': this.line(it.text, 'warn'); return this.wait(stream);
-        case 'error': this.line(it.text, 'err'); return this.wait(stream);
+        case 'error': this.ctx.status = 1; this.line(it.text, 'err'); return this.wait(stream);
         case 'success': this.line(it.text, 'ok'); return this.wait(stream);
         case 'info': this.line(it.text, 'info'); return this.wait(stream);
         case 'note': this.note(it.text); return this.wait(this._fast ? 0 : 200);
@@ -871,7 +945,7 @@
   Term.css = [
     ':host{display:block;margin:1.2em 0;--bg:#1a1b26;--fg:#c0caf5;--muted:#565f89;',
     '--accent:#9ece6a;--accent2:#7aa2f7;--ok:#9ece6a;--warn:#e0af68;--err:#f7768e;',
-    '--info:#7dcfff;--comment:#6a9955;--dir:#2a6df4;--git:#3fb950;',
+    '--info:#7dcfff;--comment:#6a9955;--dir:#2a6df4;--git:#3fb950;--rbg:#2a2c3f;',
     '--font:"SFMono-Regular",ui-monospace,"Cascadia Code","JetBrains Mono",Menlo,Consolas,monospace;',
     'font-family:var(--font);}',
     '.win{background:var(--bg);border-radius:10px;overflow:hidden;',
@@ -887,15 +961,20 @@
     '.screen{padding:14px 16px 18px;max-height:520px;overflow:auto;color:var(--fg);',
     'box-sizing:border-box;white-space:pre-wrap;word-break:break-all;}',
     '.block{margin:.15em 0 .1em;}',
-    '.pbar{display:flex;align-items:stretch;line-height:1.7;width:max-content;max-width:100%;',
-    'font-size:12.5px;border-radius:3px;overflow:hidden;}',
+    '.pbar{display:flex;justify-content:space-between;align-items:stretch;line-height:1.7;',
+    'width:100%;font-size:12.5px;gap:.6em;}',
+    '.lpbar,.rpbar{display:flex;align-items:stretch;border-radius:3px;overflow:hidden;}',
+    '.lpbar{min-width:0;}.rpbar{flex:0 0 auto;}',
     '.seg{display:flex;align-items:center;padding:0 .7em;font-weight:600;white-space:nowrap;}',
+    '.clock{font-variant-numeric:tabular-nums;}',
     '.ic{flex:0 0 auto;width:1.05em;height:1.05em;margin-right:.42em;',
     'background-color:currentColor;-webkit-mask-repeat:no-repeat;mask-repeat:no-repeat;',
     '-webkit-mask-position:center;mask-position:center;-webkit-mask-size:contain;mask-size:contain;}',
     '.sep{width:.62em;align-self:stretch;background:var(--next);position:relative;flex:0 0 auto;}',
     '.sep::before{content:"";position:absolute;inset:0;background:var(--prev);',
     'clip-path:polygon(0 0,0 100%,100% 50%);}',
+    '.rsep{background:var(--prev);}',
+    '.rsep::before{background:var(--next);clip-path:polygon(100% 0,100% 100%,0 50%);}',
     '.pline{position:relative;}',
     '.pchar{color:var(--accent);font-weight:700;margin-right:.55em;}',
     '.typed{white-space:pre-wrap;}',
@@ -903,16 +982,17 @@
     'display:inline-flex;align-items:center;justify-content:center;width:26px;height:22px;',
     'padding:0;border-radius:6px;cursor:pointer;color:var(--fg);background:rgba(127,127,127,.16);',
     'border:1px solid rgba(127,127,127,.28);opacity:0;transition:opacity .12s;}',
-    '.win:hover .copy-all{opacity:.6;}',
-    '.copy-all:hover{opacity:1;background:rgba(127,127,127,.3);}',
-    '.copy-all.copied{color:#9ece6a;opacity:1;}',
+    '.win:hover .copy-all,.copy-all:focus-visible{opacity:.6;}',
+    '.copy-all:hover,.copy-all:focus-visible{opacity:1;background:rgba(127,127,127,.3);}',
+    '.copy-all.copied{color:var(--accent);opacity:1;}',
     '.copy{position:absolute;right:0;top:-1px;display:inline-flex;align-items:center;',
     'justify-content:center;width:24px;height:21px;padding:0;border-radius:5px;cursor:pointer;',
     'color:var(--fg);background:rgba(127,127,127,.16);border:1px solid rgba(127,127,127,.28);',
     'opacity:0;transition:opacity .12s;}',
-    '.block:hover .copy{opacity:.7;}',
-    '.copy:hover{opacity:1;background:rgba(127,127,127,.3);}',
-    '.copy.copied{color:#9ece6a;opacity:1;}',
+    '.block:hover .copy,.block:focus-within .copy{opacity:.7;}',
+    '.copy:hover,.copy:focus-visible{opacity:1;background:rgba(127,127,127,.3);}',
+    '.copy.copied{color:var(--accent);opacity:1;}',
+    '@media (hover:none){.copy,.copy-all{opacity:.5;}}',
     '.cursor{display:inline-block;width:.55em;height:1.05em;background:var(--fg);',
     'margin-left:1px;transform:translateY(.18em);animation:blink 1.05s steps(1) infinite;}',
     '.cursor.idle{opacity:.8;}',
