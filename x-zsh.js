@@ -318,6 +318,18 @@
   class Term extends HTMLElement {
     connectedCallback() {
       if (this._mounted) { this.observe(); return; }   // re-observe if moved back into the DOM
+      // When the script is loaded in <head> (no defer), the parser upgrades
+      // the element at its *opening* tag — before the session text between
+      // the tags exists — so textContent would be empty here. Wait for the
+      // initial parse to finish before reading the script.
+      if (document.readyState === 'loading' && !this._deferred) {
+        this._deferred = true;
+        var el = this;
+        document.addEventListener('DOMContentLoaded', function () {
+          if (el.isConnected && !el._mounted) el.connectedCallback();
+        }, { once: true });
+        return;
+      }
       this._mounted = true;
       var raw = this.textContent || '';
       this.items = dedent(raw).map(classify).filter(Boolean);

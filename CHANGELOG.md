@@ -3,6 +3,15 @@
 All notable changes to **x-zsh**. Format loosely follows
 [Keep a Changelog](https://keepachangelog.com/); versions follow semver.
 
+## 0.7.1
+
+- **Fixed:** loading the script in `<head>` without `defer` rendered an empty,
+  never-animating terminal. The parser upgrades `<x-zsh>` at its opening tag —
+  before the session text between the tags exists — so the element read an
+  empty script. Setup now waits for the initial parse to finish
+  (`DOMContentLoaded`) when upgraded mid-parse; script placement no longer
+  matters. Dynamically created elements are unaffected.
+
 ## 0.7.0
 
 - **Compact prompt** (`compact`) — an icons-only prompt (hides OS name + plugin versions).
