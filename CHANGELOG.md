@@ -3,6 +3,12 @@
 All notable changes to **x-zsh**. Format loosely follows
 [Keep a Changelog](https://keepachangelog.com/); versions follow semver.
 
+## 0.7.2
+
+- **Fixed:** a centered ancestor (e.g. a hero section with `text-align: center`)
+  centered the terminal's content. Inherited CSS properties cross the shadow
+  boundary, so `:host` now pins `text-align: start`.
+
 ## 0.7.1
 
 - **Fixed:** loading the script in `<head>` without `defer` rendered an empty,

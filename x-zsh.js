@@ -955,7 +955,9 @@
   }
 
   Term.css = [
-    ':host{display:block;margin:1.2em 0;--bg:#1a1b26;--fg:#c0caf5;--muted:#565f89;',
+    // text-align:start — inherited properties cross the shadow boundary, so a
+    // centered ancestor (e.g. a hero <header>) would otherwise center the screen.
+    ':host{display:block;margin:1.2em 0;text-align:start;--bg:#1a1b26;--fg:#c0caf5;--muted:#565f89;',
     '--accent:#9ece6a;--accent2:#7aa2f7;--ok:#9ece6a;--warn:#e0af68;--err:#f7768e;',
     '--info:#7dcfff;--comment:#6a9955;--dir:#2a6df4;--git:#3fb950;--rbg:#2a2c3f;',
     '--font:"SFMono-Regular",ui-monospace,"Cascadia Code","JetBrains Mono",Menlo,Consolas,monospace;',
